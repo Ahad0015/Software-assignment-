@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Advisories – Amdan Organics</title>
+
+  <link rel="stylesheet" href="../css/style.css"/>
+
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+
+    <ul class="sidebar-nav">
+
+      <li class="nav-section-label">
+        Information Center
+      </li>
+
+      <li>
+        <a class="nav-item" href="admin-dashboard.html">
+          <i class="material-icons">dashboard</i>
+          Dashboard
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item active" href="advisories.html">
+          <i class="material-icons">campaign</i>
+          Advisories
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="market-prices.html">
+          <i class="material-icons">trending_up</i>
+          Market Prices
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="system-logs.html">
+          <i class="material-icons">receipt_long</i>
+          System Logs
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+    <!-- PAGE HEADER -->
+
+    <div class="page-header">
+
+      <div>
+
+        <h1 class="page-title">
+          Advisories
+        </h1>
+
+        <p class="page-subtitle">
+          Agricultural alerts, weather updates, and market guidance
+        </p>
+
+      </div>
+
+      <button
+        class="btn btn-primary"
+        onclick="refreshAdvisories()"
+      >
+
+        <i class="material-icons" style="font-size:18px">
+          refresh
+        </i>
+
+        Refresh
+
+      </button>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stat-grid" id="advisory-stats">
+
+      <div class="spinner"></div>
+
+    </div>
+
+    <!-- SEARCH -->
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+
+      <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap
+      ">
+
+        <input
+          type="text"
+          id="search-input"
+          class="form-control"
+          placeholder="Search advisories..."
+          onkeyup="loadAdvisories()"
+          style="max-width:320px"
+        />
+
+      </div>
+
+    </div>
+
+    <!-- ADVISORIES -->
+
+    <div id="advisories-container">
+
+      <div class="spinner"></div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+/*
+  INITIAL DATA
+*/
+
+if(!localStorage.getItem('advisories')){
+
+  localStorage.setItem(
+
+    'advisories',
+
+    JSON.stringify([
+
+      {
+        id:1,
+        type:'Weather',
+        title:'Heavy Rain Expected',
+        message:
+          'Farmers are advised to prepare drainage systems due to expected heavy rainfall this week.',
+        date:'07 Jun 2026'
+      },
+
+      {
+        id:2,
+        type:'Market',
+        title:'Tomato Prices Increasing',
+        message:
+          'Tomato prices have increased by 15% in Addis Ababa markets.',
+        date:'07 Jun 2026'
+      },
+
+      {
+        id:3,
+        type:'Warning',
+        title:'Pest Alert',
+        message:
+          'Armyworm outbreak detected in nearby regions. Inspect maize fields immediately.',
+        date:'06 Jun 2026'
+      },
+
+      {
+        id:4,
+        type:'Weather',
+        title:'Dry Conditions Expected',
+        message:
+          'Irrigation is recommended for the next 5 days due to dry conditions.',
+        date:'05 Jun 2026'
+      }
+
+    ])
+
+  );
+
+}
+
+/*
+  LOAD ADVISORIES
+*/
+
+function loadAdvisories(){
+
+  const container =
+    document.getElementById('advisories-container');
+
+  const keyword =
+    document.getElementById('search-input')
+    .value
+    .toLowerCase();
+
+  let advisories =
+    JSON.parse(
+      localStorage.getItem('advisories')
+    ) || [];
+
+  /*
+    SEARCH
+  */
+
+  if(keyword){
+
+    advisories = advisories.filter(item =>
+
+      item.title.toLowerCase().includes(keyword)
+      ||
+      item.message.toLowerCase().includes(keyword)
+      ||
+      item.type.toLowerCase().includes(keyword)
+
+    );
+
+  }
+
+  /*
+    STATS
+  */
+
+  const weather =
+    advisories.filter(i=>i.type==='Weather').length;
+
+  const market =
+    advisories.filter(i=>i.type==='Market').length;
+
+  const warning =
+    advisories.filter(i=>i.type==='Warning').length;
+
+  document.getElementById(
+    'advisory-stats'
+  ).innerHTML = `
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">campaign</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${advisories.length}
+        </div>
+
+        <div class="stat-label">
+          Total Advisories
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">cloud</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${weather}
+        </div>
+
+        <div class="stat-label">
+          Weather
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+        <i class="material-icons">trending_up</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${market}
+        </div>
+
+        <div class="stat-label">
+          Market
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon amber">
+        <i class="material-icons">warning</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${warning}
+        </div>
+
+        <div class="stat-label">
+          Warnings
+        </div>
+      </div>
+
+    </div>
+
+  `;
+
+  /*
+    EMPTY
+  */
+
+  if(advisories.length === 0){
+
+    container.innerHTML = `
+
+      <div class="card">
+
+        <div class="empty-state">
+
+          <i class="material-icons">
+            search_off
+          </i>
+
+          <p>No advisories found.</p>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  /*
+    RENDER
+  */
+
+  container.innerHTML = advisories.map(item => {
+
+    const config = {
+
+      Weather : {
+        bg:'var(--blue-light)',
+        color:'var(--blue)',
+        icon:'cloud'
+      },
+
+      Market : {
+        bg:'var(--green-bg)',
+        color:'var(--green-main)',
+        icon:'trending_up'
+      },
+
+      Warning : {
+        bg:'var(--amber-light)',
+        color:'var(--amber)',
+        icon:'warning'
+      }
+
+    };
+
+    const sc = config[item.type];
+
+    return `
+
+      <div class="card" style="margin-bottom:14px">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          flex-wrap:wrap;
+          gap:14px
+        ">
+
+          <!-- LEFT -->
+
+          <div style="
+            display:flex;
+            gap:14px;
+            flex:1
+          ">
+
+            <div style="
+              width:56px;
+              height:56px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:var(--radius-sm);
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              flex-shrink:0
+            ">
+
+              <i class="material-icons">
+                ${sc.icon}
+              </i>
+
+            </div>
+
+            <div>
+
+              <div style="
+                font-size:16px;
+                font-weight:600;
+                margin-bottom:6px
+              ">
+
+                ${item.title}
+
+              </div>
+
+              <div style="
+                font-size:14px;
+                color:var(--gray-mid);
+                line-height:1.6;
+                margin-bottom:8px
+              ">
+
+                ${item.message}
+
+              </div>
+
+              <div style="
+                font-size:12px;
+                color:var(--gray-mid)
+              ">
+
+                Published:
+                ${item.date}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT -->
+
+          <div>
+
+            <div style="
+              display:flex;
+              align-items:center;
+              gap:6px;
+              padding:6px 12px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:20px;
+              font-size:13px;
+              font-weight:500
+            ">
+
+              <i class="material-icons" style="font-size:16px">
+                ${sc.icon}
+              </i>
+
+              ${item.type}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }).join('');
+
+}
+
+/*
+  REFRESH
+*/
+
+function refreshAdvisories(){
+
+  loadAdvisories();
+
+}
+
+/*
+  INIT
+*/
+
+loadAdvisories();
+
+</script>
+
+</body>
+</html>

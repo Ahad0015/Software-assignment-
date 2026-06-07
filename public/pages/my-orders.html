@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Orders – Amdan Organics</title>
+
+  <link rel="stylesheet" href="../css/style.css"/>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+
+    <ul class="sidebar-nav">
+
+      <li class="nav-section-label">Marketplace</li>
+
+      <li>
+        <a class="nav-item" href="buyer-dashboard.html">
+          <i class="material-icons">dashboard</i>
+          Dashboard
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="marketplace.html">
+          <i class="material-icons">storefront</i>
+          Browse Products
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="my-inquiries.html">
+          <i class="material-icons">question_answer</i>
+          My Inquiries
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item active" href="my-orders.html">
+          <i class="material-icons">receipt_long</i>
+          My Orders
+        </a>
+      </li>
+
+      <li class="nav-section-label">Info</li>
+
+      <li>
+        <a class="nav-item" href="notifications.html">
+          <i class="material-icons">notifications</i>
+          Notifications
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+
+  <!-- MAIN CONTENT -->
+
+  <main class="main-content">
+
+    <!-- PAGE HEADER -->
+
+    <div class="page-header">
+
+      <div>
+        <h1 class="page-title">My Orders</h1>
+
+        <p class="page-subtitle">
+          View and track all your marketplace orders
+        </p>
+      </div>
+
+      <a href="marketplace.html" class="btn btn-primary">
+
+        <i class="material-icons" style="font-size:18px">
+          storefront
+        </i>
+
+        Browse Products
+
+      </a>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stat-grid" id="order-stats">
+
+      <div class="spinner"></div>
+
+    </div>
+
+    <!-- FILTERS -->
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+
+        <select
+          id="filter-status"
+          class="form-control"
+          style="width:220px"
+          onchange="loadOrders()"
+        >
+
+          <option value="">All Orders</option>
+
+          <option value="Pending">Pending</option>
+
+          <option value="Processing">Processing</option>
+
+          <option value="Delivered">Delivered</option>
+
+          <option value="Cancelled">Cancelled</option>
+
+        </select>
+
+        <button class="btn btn-secondary" onclick="loadOrders()">
+
+          <i class="material-icons" style="font-size:18px">
+            refresh
+          </i>
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- ORDERS -->
+
+    <div id="orders-container">
+
+      <div class="spinner"></div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+function loadOrders(){
+
+  const container =
+    document.getElementById('orders-container');
+
+  const status =
+    document.getElementById('filter-status').value;
+
+  /*
+    GET ORDERS
+  */
+
+  let orders =
+    JSON.parse(localStorage.getItem('myOrders'))
+    || [];
+
+  /*
+    FILTER
+  */
+
+  if(status){
+
+    orders = orders.filter(
+      o => o.status === status
+    );
+
+  }
+
+  /*
+    STATS
+  */
+
+  const pending =
+    orders.filter(o=>o.status==='Pending').length;
+
+  const processing =
+    orders.filter(o=>o.status==='Processing').length;
+
+  const delivered =
+    orders.filter(o=>o.status==='Delivered').length;
+
+  const cancelled =
+    orders.filter(o=>o.status==='Cancelled').length;
+
+  document.getElementById('order-stats').innerHTML = `
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">shopping_bag</i>
+      </div>
+
+      <div>
+        <div class="stat-value">${orders.length}</div>
+        <div class="stat-label">Total Orders</div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon amber">
+        <i class="material-icons">schedule</i>
+      </div>
+
+      <div>
+        <div class="stat-value">${pending}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">local_shipping</i>
+      </div>
+
+      <div>
+        <div class="stat-value">${processing}</div>
+        <div class="stat-label">Processing</div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+        <i class="material-icons">check_circle</i>
+      </div>
+
+      <div>
+        <div class="stat-value">${delivered}</div>
+        <div class="stat-label">Delivered</div>
+      </div>
+
+    </div>
+
+  `;
+
+  /*
+    EMPTY
+  */
+
+  if(orders.length === 0){
+
+    container.innerHTML = `
+
+      <div class="card">
+
+        <div class="empty-state">
+
+          <i class="material-icons">
+            receipt_long
+          </i>
+
+          <p>No orders found.</p>
+
+          <span>
+            Your accepted inquiries will appear here.
+          </span>
+
+          <br><br>
+
+          <a
+            href="marketplace.html"
+            class="btn btn-primary"
+            style="display:inline-flex"
+          >
+
+            <i class="material-icons" style="font-size:18px">
+              storefront
+            </i>
+
+            Browse Products
+
+          </a>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  /*
+    RENDER ORDERS
+  */
+
+  container.innerHTML = orders.map(order => {
+
+    const colors = {
+
+      Pending : {
+        bg:'var(--amber-light)',
+        color:'var(--amber)',
+        icon:'schedule'
+      },
+
+      Processing : {
+        bg:'var(--blue-light)',
+        color:'var(--blue)',
+        icon:'local_shipping'
+      },
+
+      Delivered : {
+        bg:'var(--green-bg)',
+        color:'var(--green-main)',
+        icon:'check_circle'
+      },
+
+      Cancelled : {
+        bg:'var(--red-light)',
+        color:'var(--red)',
+        icon:'cancel'
+      }
+
+    };
+
+    const sc = colors[order.status];
+
+    return `
+
+      <div class="card" style="margin-bottom:14px">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          flex-wrap:wrap;
+          gap:14px
+        ">
+
+          <!-- LEFT -->
+
+          <div style="
+            display:flex;
+            gap:14px;
+            flex:1
+          ">
+
+            <div style="
+              width:56px;
+              height:56px;
+              background:var(--green-bg);
+              border-radius:var(--radius-sm);
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-size:24px;
+              flex-shrink:0
+            ">
+              🍅
+            </div>
+
+            <div>
+
+              <div style="
+                font-size:16px;
+                font-weight:600;
+                margin-bottom:4px
+              ">
+
+                ${order.product}
+
+              </div>
+
+              <div style="
+                font-size:13px;
+                color:var(--gray-mid);
+                margin-bottom:6px
+              ">
+
+                Quantity:
+                <strong>${order.quantity}</strong>
+
+              </div>
+
+              <div style="
+                font-size:13px;
+                color:var(--gray-mid)
+              ">
+
+                Ordered:
+                ${order.date}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT -->
+
+          <div style="
+            display:flex;
+            flex-direction:column;
+            align-items:flex-end;
+            gap:8px
+          ">
+
+            <div style="
+              display:flex;
+              align-items:center;
+              gap:6px;
+              padding:6px 12px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:20px;
+              font-size:13px;
+              font-weight:500
+            ">
+
+              <i class="material-icons" style="font-size:16px">
+                ${sc.icon}
+              </i>
+
+              ${order.status}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }).join('');
+
+}
+
+/*
+  INITIALIZE SAMPLE DATA
+*/
+
+if(!localStorage.getItem('myOrders')){
+
+  localStorage.setItem(
+    'myOrders',
+
+    JSON.stringify([
+
+      {
+        product:'Organic Tomato',
+        quantity:'40 KG',
+        status:'Delivered',
+        date:'07 Jun 2026'
+      },
+
+      {
+        product:'Fresh Onion',
+        quantity:'100 KG',
+        status:'Processing',
+        date:'06 Jun 2026'
+      },
+
+      {
+        product:'Organic Potato',
+        quantity:'60 KG',
+        status:'Pending',
+        date:'05 Jun 2026'
+      }
+
+    ])
+
+  );
+
+}
+
+loadOrders();
+
+</script>
+
+</body>
+</html>

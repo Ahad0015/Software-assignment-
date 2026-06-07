@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Management – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Main</li>
+      <li><a class="nav-item" href="admin-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item active" href="admin-users.html">
+        <i class="material-icons">manage_accounts</i> User Management</a></li>
+      <li class="nav-section-label">Marketplace</li>
+      <li><a class="nav-item" href="admin-listings.html">
+        <i class="material-icons">storefront</i> Listings Approval</a></li>
+      <li><a class="nav-item" href="market-prices.html">
+        <i class="material-icons">bar_chart</i> Market Prices</a></li>
+      <li class="nav-section-label">Advisory</li>
+      <li><a class="nav-item" href="advisories.html">
+        <i class="material-icons">warning</i> Advisories</a></li>
+      <li class="nav-section-label">System</li>
+      <li><a class="nav-item" href="system-logs.html">
+        <i class="material-icons">history</i> System Logs</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">SystemAdmin</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">User Management</h1>
+        <p class="page-subtitle">Manage all platform users and their access</p>
+      </div>
+      <button class="btn btn-secondary" onclick="loadUsers()">
+        <i class="material-icons" style="font-size:18px">refresh</i> Refresh
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="user-stats">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <select id="filter-role" class="form-control" style="width:200px"
+                onchange="loadUsers()">
+          <option value="">All Roles</option>
+          <option value="SystemAdmin">System Admin</option>
+          <option value="FarmManager">Farm Manager</option>
+          <option value="FarmStaff">Farm Staff</option>
+          <option value="InventoryOfficer">Inventory Officer</option>
+          <option value="Buyer">Buyer</option>
+        </select>
+        <select id="filter-status" class="form-control" style="width:180px"
+                onchange="loadUsers()">
+          <option value="">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Approved">Approved</option>
+          <option value="Suspended">Suspended</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th><th>Email</th><th>Phone</th>
+              <th>Role</th><th>Status</th>
+              <th>Registered</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-body">
+            <tr><td colspan="7" style="text-align:center;
+              padding:28px;color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- User Detail Modal -->
+<div class="modal-overlay" id="user-detail-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">User Details</h3>
+      <button class="modal-close"
+              onclick="closeModal('user-detail-modal')">✕</button>
+    </div>
+    <div id="user-detail-content"></div>
+    <div class="modal-footer" id="user-detail-actions"></div>
+  </div>
+</div>
+
+<!-- Suspend Modal -->
+<div class="modal-overlay" id="suspend-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 class="modal-title">Suspend User</h3>
+      <button class="modal-close"
+              onclick="closeModal('suspend-modal')">✕</button>
+    </div>
+    <p style="font-size:14px;color:var(--gray-mid);margin-bottom:16px">
+      Please provide a reason for suspending this account.
+      The user will be notified.
+    </p>
+    <div class="form-group">
+      <label class="form-label">Reason</label>
+      <textarea id="suspend-reason" class="form-control" rows="3"
+                placeholder="e.g. Violation of platform terms..."></textarea>
+    </div>
+    <input type="hidden" id="suspend-user-id"/>
+    <div class="modal-footer">
+      <button class="btn btn-secondary"
+              onclick="closeModal('suspend-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmSuspend()"
+              id="confirm-suspend-btn">
+        <i class="material-icons" style="font-size:18px">block</i> Suspend
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('SystemAdmin');
+
+  async function loadUsers() {
+    const tbody = document.getElementById('users-body');
+    const role  = document.getElementById('filter-role').value;
+    const status= document.getElementById('filter-status').value;
+
+    let url = '/admin/users?';
+    if (role)   url += `role=${role}&`;
+    if (status) url += `status=${status}`;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:28px">
+      <div class="spinner" style="margin:0 auto"></div></td></tr>`;
+
+    const res   = await apiRequest('GET', url);
+    const users = res?.data?.users || [];
+
+    // Stats
+    const approved  = users.filter(u => u.status === 'Approved').length;
+    const pending   = users.filter(u => u.status === 'Pending').length;
+    const suspended = users.filter(u => u.status === 'Suspended').length;
+    const roles     = {};
+    users.forEach(u => { roles[u.role] = (roles[u.role] || 0) + 1; });
+
+    document.getElementById('user-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="material-icons">people</i></div>
+        <div><div class="stat-value">${users.length}</div>
+        <div class="stat-label">Total Users</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="material-icons">check_circle</i></div>
+        <div><div class="stat-value">${approved}</div>
+        <div class="stat-label">Approved</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">
+          <i class="material-icons">pending</i></div>
+        <div><div class="stat-value">${pending}</div>
+        <div class="stat-label">Pending</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">
+          <i class="material-icons">block</i></div>
+        <div><div class="stat-value">${suspended}</div>
+        <div class="stat-label">Suspended</div></div>
+      </div>`;
+
+    if (users.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;
+        padding:28px;color:var(--gray-mid)">No users found.</td></tr>`;
+      return;
+    }
+
+    const me = Auth.getUser().userID;
+
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="avatar" style="width:32px;height:32px;font-size:13px">
+              ${u.full_name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:500">${u.full_name}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:13px">${u.email}</td>
+        <td style="font-size:13px">${u.phone_number}</td>
+        <td><span class="badge badge-blue" style="font-size:11px">
+          ${u.role}</span></td>
+        <td>${statusBadge(u.status)}</td>
+        <td style="font-size:12px;color:var(--gray-mid)">
+          ${formatDate(u.created_at)}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-secondary"
+                    onclick="viewUser('${u.user_id}','${u.full_name}',
+                      '${u.email}','${u.phone_number}','${u.role}',
+                      '${u.status}','${u.created_at}')">
+              <i class="material-icons" style="font-size:15px">visibility</i>
+            </button>
+            ${u.status === 'Pending'
+              ? `<button class="btn btn-sm btn-primary"
+                         onclick="approveUser('${u.user_id}',this)">
+                   ✅ Approve
+                 </button>`
+              : ''
+            }
+            ${u.status === 'Approved' && u.user_id !== me
+              ? `<button class="btn btn-sm btn-danger"
+                         onclick="openSuspend('${u.user_id}')">
+                   🚫 Suspend
+                 </button>`
+              : ''
+            }
+            ${u.status === 'Suspended'
+              ? `<button class="btn btn-sm btn-primary"
+                         onclick="approveUser('${u.user_id}',this)">
+                   ✅ Reactivate
+                 </button>`
+              : ''
+            }
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function viewUser(id, name, email, phone, role, status, created) {
+    document.getElementById('user-detail-content').innerHTML = `
+      <div style="text-align:center;margin-bottom:20px">
+        <div class="avatar" style="width:56px;height:56px;font-size:22px;
+             margin:0 auto 12px">
+          ${name.charAt(0).toUpperCase()}
+        </div>
+        <h3 style="font-size:18px;font-weight:600">${name}</h3>
+        <div style="margin-top:6px">${statusBadge(status)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;
+                    padding:10px 0;border-bottom:1px solid var(--gray-light);
+                    font-size:14px">
+          <span style="color:var(--gray-mid)">Email</span>
+          <strong>${email}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;
+                    padding:10px 0;border-bottom:1px solid var(--gray-light);
+                    font-size:14px">
+          <span style="color:var(--gray-mid)">Phone</span>
+          <strong>${phone}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;
+                    padding:10px 0;border-bottom:1px solid var(--gray-light);
+                    font-size:14px">
+          <span style="color:var(--gray-mid)">Role</span>
+          <span class="badge badge-blue">${role}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;
+                    padding:10px 0;font-size:14px">
+          <span style="color:var(--gray-mid)">Registered</span>
+          <strong>${formatDate(created)}</strong>
+        </div>
+      </div>`;
+
+    document.getElementById('user-detail-actions').innerHTML =
+      `<button class="btn btn-secondary"
+               onclick="closeModal('user-detail-modal')">Close</button>`;
+
+    openModal('user-detail-modal');
+  }
+
+  async function approveUser(userID, btn) {
+    btn.disabled    = true;
+    btn.textContent = '...';
+    const res = await apiRequest('PATCH', `/admin/users/${userID}/approve`);
+    if (res?.ok) {
+      showToast('User approved successfully.');
+      loadUsers();
+    } else {
+      showToast(res?.data?.message || 'Error approving user.', 'error');
+      btn.disabled    = false;
+      btn.textContent = '✅ Approve';
+    }
+  }
+
+  function openSuspend(userID) {
+    document.getElementById('suspend-user-id').value = userID;
+    document.getElementById('suspend-reason').value  = '';
+    openModal('suspend-modal');
+  }
+
+  async function confirmSuspend() {
+    const userID = document.getElementById('suspend-user-id').value;
+    const reason = document.getElementById('suspend-reason').value.trim();
+    const btn    = document.getElementById('confirm-suspend-btn');
+
+    btn.disabled    = true;
+    btn.textContent = 'Suspending...';
+
+    const res = await apiRequest(
+      'PATCH', `/admin/users/${userID}/suspend`, { reason }
+    );
+
+    btn.disabled = false;
+    btn.innerHTML =
+      '<i class="material-icons" style="font-size:18px">block</i> Suspend';
+
+    if (res?.ok) {
+      closeModal('suspend-modal');
+      showToast('User suspended.');
+      loadUsers();
+    } else {
+      showToast(res?.data?.message || 'Error suspending user.', 'error');
+    }
+  }
+
+  // Check URL params for pre-filtering
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('status')) {
+    document.getElementById('filter-status').value = urlParams.get('status');
+  }
+
+  loadUsers();
+</script>
+</body>
+</html>

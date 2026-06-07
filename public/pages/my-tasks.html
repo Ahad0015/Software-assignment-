@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>My Tasks – Amdan Organics</title>
+
+  <link rel="stylesheet" href="../css/style.css"/>
+
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+
+    <ul class="sidebar-nav">
+
+      <li class="nav-section-label">
+        Work Management
+      </li>
+
+      <li>
+        <a class="nav-item" href="farmer-dashboard.html">
+          <i class="material-icons">dashboard</i>
+          Dashboard
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item active" href="my-tasks.html">
+          <i class="material-icons">task</i>
+          My Tasks
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="marketplace.html">
+          <i class="material-icons">storefront</i>
+          Marketplace
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="notifications.html">
+          <i class="material-icons">notifications</i>
+          Notifications
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+    <!-- PAGE HEADER -->
+
+    <div class="page-header">
+
+      <div>
+
+        <h1 class="page-title">
+          My Tasks
+        </h1>
+
+        <p class="page-subtitle">
+          Track and manage your assigned farm tasks
+        </p>
+
+      </div>
+
+      <button
+        class="btn btn-primary"
+        onclick="refreshTasks()"
+      >
+
+        <i class="material-icons" style="font-size:18px">
+          refresh
+        </i>
+
+        Refresh
+
+      </button>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stat-grid" id="task-stats">
+
+      <div class="spinner"></div>
+
+    </div>
+
+    <!-- FILTER -->
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+
+      <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap
+      ">
+
+        <select
+          id="filter-status"
+          class="form-control"
+          style="width:220px"
+          onchange="loadTasks()"
+        >
+
+          <option value="">
+            All Tasks
+          </option>
+
+          <option value="Pending">
+            Pending
+          </option>
+
+          <option value="In Progress">
+            In Progress
+          </option>
+
+          <option value="Completed">
+            Completed
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+    <!-- TASKS -->
+
+    <div id="tasks-container">
+
+      <div class="spinner"></div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+/*
+  INITIAL DATA
+*/
+
+if(!localStorage.getItem('myTasks')){
+
+  localStorage.setItem(
+
+    'myTasks',
+
+    JSON.stringify([
+
+      {
+        id:1,
+        title:'Irrigate Tomato Farm',
+        description:
+          'Water section A before 5 PM to maintain soil moisture.',
+        priority:'High',
+        status:'Pending',
+        due:'07 Jun 2026'
+      },
+
+      {
+        id:2,
+        title:'Harvest Fresh Onion',
+        description:
+          'Harvest onions from Block B and prepare for delivery.',
+        priority:'Medium',
+        status:'In Progress',
+        due:'08 Jun 2026'
+      },
+
+      {
+        id:3,
+        title:'Apply Organic Fertilizer',
+        description:
+          'Apply compost fertilizer to maize crops.',
+        priority:'Low',
+        status:'Completed',
+        due:'05 Jun 2026'
+      }
+
+    ])
+
+  );
+
+}
+
+/*
+  LOAD TASKS
+*/
+
+function loadTasks(){
+
+  const container =
+    document.getElementById('tasks-container');
+
+  const status =
+    document.getElementById('filter-status').value;
+
+  let tasks =
+    JSON.parse(
+      localStorage.getItem('myTasks')
+    ) || [];
+
+  /*
+    FILTER
+  */
+
+  if(status){
+
+    tasks =
+      tasks.filter(
+        item => item.status === status
+      );
+
+  }
+
+  /*
+    STATS
+  */
+
+  const pending =
+    tasks.filter(i=>i.status==='Pending').length;
+
+  const progress =
+    tasks.filter(i=>i.status==='In Progress').length;
+
+  const completed =
+    tasks.filter(i=>i.status==='Completed').length;
+
+  document.getElementById(
+    'task-stats'
+  ).innerHTML = `
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">task</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${tasks.length}
+        </div>
+
+        <div class="stat-label">
+          Total Tasks
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon amber">
+        <i class="material-icons">schedule</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${pending}
+        </div>
+
+        <div class="stat-label">
+          Pending
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">autorenew</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${progress}
+        </div>
+
+        <div class="stat-label">
+          In Progress
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+        <i class="material-icons">check_circle</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${completed}
+        </div>
+
+        <div class="stat-label">
+          Completed
+        </div>
+      </div>
+
+    </div>
+
+  `;
+
+  /*
+    EMPTY
+  */
+
+  if(tasks.length === 0){
+
+    container.innerHTML = `
+
+      <div class="card">
+
+        <div class="empty-state">
+
+          <i class="material-icons">
+            assignment
+          </i>
+
+          <p>No tasks found.</p>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  /*
+    RENDER
+  */
+
+  container.innerHTML = tasks.map(item => {
+
+    const statusConfig = {
+
+      Pending : {
+        bg:'var(--amber-light)',
+        color:'var(--amber)',
+        icon:'schedule'
+      },
+
+      'In Progress' : {
+        bg:'var(--blue-light)',
+        color:'var(--blue)',
+        icon:'autorenew'
+      },
+
+      Completed : {
+        bg:'var(--green-bg)',
+        color:'var(--green-main)',
+        icon:'check_circle'
+      }
+
+    };
+
+    const sc = statusConfig[item.status];
+
+    return `
+
+      <div class="card" style="margin-bottom:14px">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          flex-wrap:wrap;
+          gap:14px
+        ">
+
+          <!-- LEFT -->
+
+          <div style="
+            display:flex;
+            gap:14px;
+            flex:1
+          ">
+
+            <div style="
+              width:56px;
+              height:56px;
+              background:var(--green-bg);
+              border-radius:var(--radius-sm);
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              flex-shrink:0
+            ">
+
+              <i class="material-icons" style="
+                color:var(--green-main)
+              ">
+                agriculture
+              </i>
+
+            </div>
+
+            <div>
+
+              <div style="
+                font-size:16px;
+                font-weight:600;
+                margin-bottom:6px
+              ">
+
+                ${item.title}
+
+              </div>
+
+              <div style="
+                font-size:14px;
+                color:var(--gray-mid);
+                line-height:1.6;
+                margin-bottom:8px
+              ">
+
+                ${item.description}
+
+              </div>
+
+              <div style="
+                font-size:12px;
+                color:var(--gray-mid)
+              ">
+
+                Due:
+                ${item.due}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT -->
+
+          <div style="
+            display:flex;
+            flex-direction:column;
+            align-items:flex-end;
+            gap:8px
+          ">
+
+            <div style="
+              display:flex;
+              align-items:center;
+              gap:6px;
+              padding:6px 12px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:20px;
+              font-size:13px;
+              font-weight:500
+            ">
+
+              <i class="material-icons" style="font-size:16px">
+                ${sc.icon}
+              </i>
+
+              ${item.status}
+
+            </div>
+
+            <div style="
+              font-size:12px;
+              color:var(--gray-mid)
+            ">
+
+              Priority:
+              <strong>${item.priority}</strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }).join('');
+
+}
+
+/*
+  REFRESH
+*/
+
+function refreshTasks(){
+
+  loadTasks();
+
+}
+
+/*
+  INIT
+*/
+
+loadTasks();
+
+</script>
+
+</body>
+</html>

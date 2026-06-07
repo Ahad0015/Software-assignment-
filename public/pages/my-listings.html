@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Listings – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Farm Operations</li>
+      <li><a class="nav-item" href="farm-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item" href="crop-plans.html">
+        <i class="material-icons">eco</i> Crop Plans</a></li>
+      <li><a class="nav-item" href="harvests.html">
+        <i class="material-icons">agriculture</i> Harvests</a></li>
+      <li class="nav-section-label">Intelligence</li>
+      <li><a class="nav-item" href="weather.html">
+        <i class="material-icons">cloud</i> Weather</a></li>
+      <li><a class="nav-item" href="market-prices.html">
+        <i class="material-icons">bar_chart</i> Market Prices</a></li>
+      <li class="nav-section-label">Commerce</li>
+      <li><a class="nav-item active" href="my-listings.html">
+        <i class="material-icons">storefront</i> My Listings</a></li>
+      <li><a class="nav-item" href="inquiries.html">
+        <i class="material-icons">question_answer</i> Inquiries</a></li>
+      <li><a class="nav-item" href="orders.html">
+        <i class="material-icons">receipt_long</i> Orders</a></li>
+      <li class="nav-section-label">Reports</li>
+      <li><a class="nav-item" href="reports.html">
+        <i class="material-icons">assessment</i> Reports</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">M</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Manager</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">FarmManager</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Produce Listings</h1>
+        <p class="page-subtitle">Create and manage marketplace listings</p>
+      </div>
+      <button class="btn btn-primary"
+              onclick="openModal('create-listing-modal')">
+        <i class="material-icons" style="font-size:18px">add</i> New Listing
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="listing-stats">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <select id="filter-status" class="form-control" style="width:200px"
+                onchange="loadListings()">
+          <option value="">All Statuses</option>
+          <option value="Draft">Draft</option>
+          <option value="Pending Approval">Pending Approval</option>
+          <option value="Published">Published</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Unavailable">Unavailable</option>
+          <option value="Removed">Removed</option>
+        </select>
+        <button class="btn btn-secondary" onclick="loadListings()">
+          <i class="material-icons" style="font-size:18px">refresh</i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th><th>Quantity</th>
+              <th>Price (ETB)</th><th>Grade</th>
+              <th>Status</th><th>Created</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="listings-body">
+            <tr><td colspan="7" style="text-align:center;
+              padding:28px;color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Create Listing Modal -->
+<div class="modal-overlay" id="create-listing-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title">Create New Produce Listing</h3>
+      <button class="modal-close"
+              onclick="closeModal('create-listing-modal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Product Name</label>
+      <input type="text" id="l-name" class="form-control"
+             placeholder="e.g. Organic Tomato Grade A"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea id="l-desc" class="form-control" rows="3"
+                placeholder="Describe origin, farming method, quality..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Quantity Available</label>
+        <input type="number" id="l-qty" class="form-control"
+               placeholder="e.g. 100" min="0.1" step="0.1"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unit</label>
+        <select id="l-unit" class="form-control">
+          <option value="kg">kg</option>
+          <option value="ton">ton</option>
+          <option value="quintal">quintal</option>
+          <option value="bunch">bunch</option>
+          <option value="piece">piece</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Unit Price (ETB)</label>
+        <input type="number" id="l-price" class="form-control"
+               placeholder="e.g. 50.00" min="0.01" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quality Grade</label>
+        <select id="l-grade" class="form-control">
+          <option value="Grade A">Grade A</option>
+          <option value="Grade B">Grade B</option>
+          <option value="Grade C">Grade C</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Harvest Date</label>
+      <input type="date" id="l-harvest" class="form-control"/>
+    </div>
+    <div class="alert alert-info" style="margin-bottom:0">
+      <i class="material-icons">info</i>
+      Listing will be submitted for admin approval before going live.
+    </div>
+    <p id="listing-error"
+       style="color:var(--red);font-size:13px;margin-top:8px;display:none"></p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary"
+              onclick="closeModal('create-listing-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createListing()"
+              id="create-listing-btn">
+        <i class="material-icons" style="font-size:18px">send</i> Submit for Approval
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('FarmManager');
+
+  async function loadListings() {
+    const tbody  = document.getElementById('listings-body');
+    const status = document.getElementById('filter-status').value;
+    let url      = '/listings?';
+    if (status) url += `status=${encodeURIComponent(status)}`;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:28px">
+      <div class="spinner" style="margin:0 auto"></div></td></tr>`;
+
+    const res      = await apiRequest('GET', url);
+    const listings = res?.data?.listings || [];
+
+    const published = listings.filter(l => l.status === 'Published').length;
+    const pending   = listings.filter(l => l.status === 'Pending Approval').length;
+    const rejected  = listings.filter(l => l.status === 'Rejected').length;
+    const totalQty  = listings
+      .filter(l => l.status === 'Published')
+      .reduce((s,l) => s + parseFloat(l.quantity_available), 0);
+
+    document.getElementById('listing-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">storefront</i></div>
+        <div><div class="stat-value">${published}</div>
+        <div class="stat-label">Published</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="material-icons">pending</i></div>
+        <div><div class="stat-value">${pending}</div>
+        <div class="stat-label">Pending Approval</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="material-icons">cancel</i></div>
+        <div><div class="stat-value">${rejected}</div>
+        <div class="stat-label">Rejected</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="material-icons">scale</i></div>
+        <div><div class="stat-value">${formatNumber(totalQty)}</div>
+        <div class="stat-label">Total Available Qty</div></div>
+      </div>`;
+
+    if (listings.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;
+        padding:28px;color:var(--gray-mid)">No listings found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = listings.map(l => `
+      <tr>
+        <td><strong>${l.product_name}</strong></td>
+        <td>${formatNumber(l.quantity_available)} ${l.unit}</td>
+        <td>${formatCurrency(l.unit_price)}</td>
+        <td>${statusBadge(l.quality_grade)}</td>
+        <td>${statusBadge(l.status)}</td>
+        <td>${formatDate(l.created_at)}</td>
+        <td style="display:flex;gap:6px">
+          ${l.status !== 'Published' && l.status !== 'Removed'
+            ? `<button class="btn btn-sm btn-danger"
+                       onclick="removeListing('${l.listing_id}',
+                         '${l.product_name}')">
+                 <i class="material-icons" style="font-size:16px">delete</i>
+               </button>`
+            : ''
+          }
+          ${l.rejection_reason
+            ? `<button class="btn btn-sm btn-amber"
+                       title="${l.rejection_reason}"
+                       onclick="alert('Rejection reason: ${l.rejection_reason}')">
+                 <i class="material-icons" style="font-size:16px">info</i>
+               </button>`
+            : ''
+          }
+        </td>
+      </tr>`).join('');
+  }
+
+  async function createListing() {
+    const btn   = document.getElementById('create-listing-btn');
+    const errEl = document.getElementById('listing-error');
+    errEl.style.display = 'none';
+
+    const body = {
+      productName       : document.getElementById('l-name').value.trim(),
+      description       : document.getElementById('l-desc').value.trim(),
+      quantityAvailable : parseFloat(document.getElementById('l-qty').value),
+      unit              : document.getElementById('l-unit').value,
+      unitPrice         : parseFloat(document.getElementById('l-price').value),
+      qualityGrade      : document.getElementById('l-grade').value,
+      harvestDate       : document.getElementById('l-harvest').value,
+    };
+
+    if (!body.productName || !body.description || !body.quantityAvailable
+        || !body.unitPrice || !body.harvestDate) {
+      errEl.style.display = 'block';
+      errEl.textContent   = 'All fields are required.';
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Submitting...';
+
+    const res = await apiRequest('POST', '/listings', body);
+    btn.disabled = false;
+    btn.innerHTML =
+      '<i class="material-icons" style="font-size:18px">send</i> Submit for Approval';
+
+    if (res?.ok) {
+      closeModal('create-listing-modal');
+      showToast('Listing submitted for admin approval.');
+      loadListings();
+      ['l-name','l-desc','l-qty','l-price','l-harvest'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+    } else {
+      errEl.style.display = 'block';
+      errEl.textContent   = res?.data?.message || 'Failed to create listing.';
+    }
+  }
+
+  async function removeListing(listingID, name) {
+    if (!confirm(`Remove listing "${name}"?`)) return;
+    const res = await apiRequest('PATCH', `/listings/${listingID}/remove`);
+    if (res?.ok) {
+      showToast('Listing removed.');
+      loadListings();
+    } else {
+      showToast(res?.data?.message || 'Error removing listing.', 'error');
+    }
+  }
+
+  // Set default harvest date to today
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('l-harvest').value =
+      new Date().toISOString().split('T')[0];
+  });
+
+  loadListings();
+</script>
+</body>
+</html>

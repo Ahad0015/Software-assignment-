@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Log Activity – Amdan Organics</title>
+
+  <link rel="stylesheet" href="../css/style.css"/>
+
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+
+    <ul class="sidebar-nav">
+
+      <li class="nav-section-label">
+        Activity Center
+      </li>
+
+      <li>
+        <a class="nav-item" href="admin-dashboard.html">
+          <i class="material-icons">dashboard</i>
+          Dashboard
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item active" href="log-activity.html">
+          <i class="material-icons">history</i>
+          Log Activity
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="system-logs.html">
+          <i class="material-icons">receipt_long</i>
+          System Logs
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="notifications.html">
+          <i class="material-icons">notifications</i>
+          Notifications
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+    <!-- PAGE HEADER -->
+
+    <div class="page-header">
+
+      <div>
+
+        <h1 class="page-title">
+          Log Activity
+        </h1>
+
+        <p class="page-subtitle">
+          View user activities and recent system actions
+        </p>
+
+      </div>
+
+      <button
+        class="btn btn-primary"
+        onclick="refreshActivities()"
+      >
+
+        <i class="material-icons" style="font-size:18px">
+          refresh
+        </i>
+
+        Refresh
+
+      </button>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stat-grid" id="activity-stats">
+
+      <div class="spinner"></div>
+
+    </div>
+
+    <!-- SEARCH -->
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+
+      <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap
+      ">
+
+        <input
+          type="text"
+          id="search-input"
+          class="form-control"
+          placeholder="Search activity..."
+          onkeyup="loadActivities()"
+          style="max-width:320px"
+        />
+
+      </div>
+
+    </div>
+
+    <!-- ACTIVITIES -->
+
+    <div id="activities-container">
+
+      <div class="spinner"></div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+/*
+  INITIAL DATA
+*/
+
+if(!localStorage.getItem('activityLogs')){
+
+  localStorage.setItem(
+
+    'activityLogs',
+
+    JSON.stringify([
+
+      {
+        id:1,
+        user:'Admin',
+        action:'Approved marketplace listing',
+        type:'Approval',
+        date:'07 Jun 2026',
+        time:'09:30 AM'
+      },
+
+      {
+        id:2,
+        user:'Farmer',
+        action:'Added Organic Tomato listing',
+        type:'Marketplace',
+        date:'07 Jun 2026',
+        time:'10:10 AM'
+      },
+
+      {
+        id:3,
+        user:'Buyer',
+        action:'Submitted inquiry for Onion',
+        type:'Inquiry',
+        date:'07 Jun 2026',
+        time:'11:15 AM'
+      },
+
+      {
+        id:4,
+        user:'System',
+        action:'Generated daily market report',
+        type:'System',
+        date:'07 Jun 2026',
+        time:'12:20 PM'
+      },
+
+      {
+        id:5,
+        user:'Admin',
+        action:'Updated advisory notification',
+        type:'Advisory',
+        date:'07 Jun 2026',
+        time:'01:45 PM'
+      }
+
+    ])
+
+  );
+
+}
+
+/*
+  LOAD ACTIVITIES
+*/
+
+function loadActivities(){
+
+  const container =
+    document.getElementById('activities-container');
+
+  const keyword =
+    document.getElementById('search-input')
+    .value
+    .toLowerCase();
+
+  let activities =
+    JSON.parse(
+      localStorage.getItem('activityLogs')
+    ) || [];
+
+  /*
+    SEARCH
+  */
+
+  if(keyword){
+
+    activities = activities.filter(item =>
+
+      item.user.toLowerCase().includes(keyword)
+      ||
+      item.action.toLowerCase().includes(keyword)
+      ||
+      item.type.toLowerCase().includes(keyword)
+
+    );
+
+  }
+
+  /*
+    STATS
+  */
+
+  const approvals =
+    activities.filter(i=>i.type==='Approval').length;
+
+  const marketplace =
+    activities.filter(i=>i.type==='Marketplace').length;
+
+  const inquiries =
+    activities.filter(i=>i.type==='Inquiry').length;
+
+  const system =
+    activities.filter(i=>i.type==='System').length;
+
+  document.getElementById(
+    'activity-stats'
+  ).innerHTML = `
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">history</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${activities.length}
+        </div>
+
+        <div class="stat-label">
+          Total Activities
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+        <i class="material-icons">check_circle</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${approvals}
+        </div>
+
+        <div class="stat-label">
+          Approvals
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">storefront</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${marketplace}
+        </div>
+
+        <div class="stat-label">
+          Marketplace
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon amber">
+        <i class="material-icons">question_answer</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${inquiries}
+        </div>
+
+        <div class="stat-label">
+          Inquiries
+        </div>
+      </div>
+
+    </div>
+
+  `;
+
+  /*
+    EMPTY
+  */
+
+  if(activities.length === 0){
+
+    container.innerHTML = `
+
+      <div class="card">
+
+        <div class="empty-state">
+
+          <i class="material-icons">
+            history_toggle_off
+          </i>
+
+          <p>No activity logs found.</p>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  /*
+    RENDER
+  */
+
+  container.innerHTML = activities.map(item => {
+
+    const config = {
+
+      Approval : {
+        bg:'var(--green-bg)',
+        color:'var(--green-main)',
+        icon:'check_circle'
+      },
+
+      Marketplace : {
+        bg:'var(--blue-light)',
+        color:'var(--blue)',
+        icon:'storefront'
+      },
+
+      Inquiry : {
+        bg:'var(--amber-light)',
+        color:'var(--amber)',
+        icon:'question_answer'
+      },
+
+      System : {
+        bg:'var(--gray-light)',
+        color:'var(--gray-dark)',
+        icon:'settings'
+      },
+
+      Advisory : {
+        bg:'var(--red-light)',
+        color:'var(--red)',
+        icon:'campaign'
+      }
+
+    };
+
+    const sc = config[item.type];
+
+    return `
+
+      <div class="card" style="margin-bottom:14px">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          flex-wrap:wrap;
+          gap:14px
+        ">
+
+          <!-- LEFT -->
+
+          <div style="
+            display:flex;
+            gap:14px;
+            flex:1
+          ">
+
+            <div style="
+              width:56px;
+              height:56px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:var(--radius-sm);
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              flex-shrink:0
+            ">
+
+              <i class="material-icons">
+                ${sc.icon}
+              </i>
+
+            </div>
+
+            <div>
+
+              <div style="
+                font-size:16px;
+                font-weight:600;
+                margin-bottom:6px
+              ">
+
+                ${item.action}
+
+              </div>
+
+              <div style="
+                font-size:13px;
+                color:var(--gray-mid);
+                margin-bottom:4px
+              ">
+
+                User:
+                <strong>${item.user}</strong>
+
+              </div>
+
+              <div style="
+                font-size:12px;
+                color:var(--gray-mid)
+              ">
+
+                ${item.date}
+                •
+                ${item.time}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT -->
+
+          <div>
+
+            <div style="
+              display:flex;
+              align-items:center;
+              gap:6px;
+              padding:6px 12px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:20px;
+              font-size:13px;
+              font-weight:500
+            ">
+
+              <i class="material-icons" style="font-size:16px">
+                ${sc.icon}
+              </i>
+
+              ${item.type}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }).join('');
+
+}
+
+/*
+  REFRESH
+*/
+
+function refreshActivities(){
+
+  loadActivities();
+
+}
+
+/*
+  INIT
+*/
+
+loadActivities();
+
+</script>
+
+</body>
+</html>

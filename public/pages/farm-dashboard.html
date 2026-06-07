@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Farm Manager Dashboard – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Farm Operations</li>
+      <li><a class="nav-item active" href="farm-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item" href="crop-plans.html">
+        <i class="material-icons">eco</i> Crop Plans</a></li>
+      <li><a class="nav-item" href="harvests.html">
+        <i class="material-icons">agriculture</i> Harvests</a></li>
+      <li class="nav-section-label">Intelligence</li>
+      <li><a class="nav-item" href="weather.html">
+        <i class="material-icons">cloud</i> Weather</a></li>
+      <li><a class="nav-item" href="market-prices.html">
+        <i class="material-icons">bar_chart</i> Market Prices</a></li>
+      <li class="nav-section-label">Commerce</li>
+      <li><a class="nav-item" href="my-listings.html">
+        <i class="material-icons">storefront</i> My Listings</a></li>
+      <li><a class="nav-item" href="inquiries.html">
+        <i class="material-icons">question_answer</i> Inquiries</a></li>
+      <li><a class="nav-item" href="orders.html">
+        <i class="material-icons">receipt_long</i> Orders</a></li>
+      <li class="nav-section-label">Reports</li>
+      <li><a class="nav-item" href="reports.html">
+        <i class="material-icons">assessment</i> Reports</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">M</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Manager</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">FarmManager</div>
+        </div>
+        <button class="btn-logout" id="logout-btn" title="Logout">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Farm Manager Dashboard</h1>
+        <p class="page-subtitle">Overview of all farm operations</p>
+      </div>
+      <a href="crop-plans.html" class="btn btn-primary">
+        <i class="material-icons" style="font-size:18px">add</i> New Crop Plan
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="stat-grid">
+      <div class="spinner"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- Active crop plans -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Active Crop Plans</h3>
+          <a href="crop-plans.html" class="btn btn-sm btn-outline">View all</a>
+        </div>
+        <div id="crop-plans-list"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Weather snapshot -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Weather & Alerts</h3>
+          <a href="weather.html" class="btn btn-sm btn-outline">Full dashboard</a>
+        </div>
+        <div id="weather-snapshot"><div class="spinner"></div></div>
+      </div>
+
+    </div>
+
+    <!-- Recent inquiries -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Recent Buyer Inquiries</h3>
+        <a href="inquiries.html" class="btn btn-sm btn-outline">View all</a>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th><th>Buyer</th>
+              <th>Quantity</th><th>Status</th><th>Date</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="inquiries-body">
+            <tr><td colspan="6" style="text-align:center;padding:20px;
+              color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('FarmManager');
+
+  async function loadStats() {
+    const [plansRes, harvestRes, listingRes, orderRes] = await Promise.all([
+      apiRequest('GET', '/cropplans'),
+      apiRequest('GET', '/harvests'),
+      apiRequest('GET', '/listings'),
+      apiRequest('GET', '/orders')
+    ]);
+
+    const activePlans = plansRes?.data?.cropPlans?.filter(
+      p => p.status === 'In Progress' || p.status === 'Planned').length || 0;
+    const totalHarvest= harvestRes?.data?.harvests?.reduce(
+      (s, h) => s + parseFloat(h.quantity_harvested), 0) || 0;
+    const pendingList = listingRes?.data?.listings?.filter(
+      l => l.status === 'Pending Approval').length || 0;
+    const activeOrders= orderRes?.data?.orders?.filter(
+      o => o.status !== 'Delivered' && o.status !== 'Cancelled').length || 0;
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">eco</i></div>
+        <div><div class="stat-value">${activePlans}</div>
+        <div class="stat-label">Active Crop Plans</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="material-icons">agriculture</i></div>
+        <div><div class="stat-value">${formatNumber(totalHarvest)} kg</div>
+        <div class="stat-label">Total Harvested</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="material-icons">storefront</i></div>
+        <div><div class="stat-value">${pendingList}</div>
+        <div class="stat-label">Listings Pending</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">receipt_long</i></div>
+        <div><div class="stat-value">${activeOrders}</div>
+        <div class="stat-label">Active Orders</div></div>
+      </div>`;
+  }
+
+  async function loadCropPlans() {
+    const container = document.getElementById('crop-plans-list');
+    const res = await apiRequest('GET', '/cropplans?status=In Progress');
+    const plans = res?.data?.cropPlans || [];
+
+    if (plans.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <i class="material-icons">eco</i>
+        <p>No active crop plans</p>
+        <span><a href="crop-plans.html">Create one</a></span></div>`;
+      return;
+    }
+
+    container.innerHTML = plans.slice(0, 5).map(p => `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:10px 0;border-bottom:1px solid var(--gray-light)">
+        <div>
+          <div style="font-size:14px;font-weight:500">${p.crop_type}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">
+            ${p.field_plot} · Harvest: ${formatDate(p.expected_harvest_date)}
+          </div>
+        </div>
+        ${statusBadge(p.status)}
+      </div>`).join('');
+  }
+
+  async function loadWeather() {
+    const container = document.getElementById('weather-snapshot');
+    const res = await apiRequest('GET', '/weather/dashboard');
+
+    if (!res?.ok) {
+      container.innerHTML = `<div class="alert alert-warning">
+        <i class="material-icons">cloud_off</i> Weather data unavailable</div>`;
+      return;
+    }
+
+    const { weather, autoAlerts, advisories } = res.data;
+    const alertCount = (autoAlerts?.length || 0) + (advisories?.length || 0);
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="text-align:center;padding:16px;background:var(--blue-light);border-radius:8px">
+          <div style="font-size:32px;font-weight:700;color:var(--blue)">
+            ${weather.temperature}°C
+          </div>
+          <div style="font-size:12px;color:var(--gray-mid)">Temperature</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--green-bg);border-radius:8px">
+          <div style="font-size:32px;font-weight:700;color:var(--green-main)">
+            ${weather.humidity}%
+          </div>
+          <div style="font-size:12px;color:var(--gray-mid)">Humidity</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:12px">
+        <span style="font-size:13px;color:var(--gray-mid)">
+          🌧 Rain: ${weather.rainfall} mm
+        </span>
+        <span style="font-size:13px;color:var(--gray-mid)">
+          💨 Wind: ${weather.windSpeed} km/h
+        </span>
+        ${statusBadge(weather.apiStatus)}
+      </div>
+      ${alertCount > 0
+        ? `<div class="alert alert-warning">
+             <i class="material-icons">warning</i>
+             ${alertCount} active alert(s). <a href="weather.html">View details</a>
+           </div>`
+        : `<div class="alert alert-success">
+             <i class="material-icons">check_circle</i> No active weather alerts
+           </div>`
+      }`;
+  }
+
+  async function loadInquiries() {
+    const tbody = document.getElementById('inquiries-body');
+    const res   = await apiRequest('GET', '/inquiries?status=Submitted');
+    const items = res?.data?.inquiries || [];
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;
+        padding:24px;color:var(--gray-mid)">No pending inquiries</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.slice(0, 8).map(i => `
+      <tr>
+        <td><strong>${i.product_name}</strong></td>
+        <td>${i.buyer_name}</td>
+        <td>${formatNumber(i.requested_qty)} ${i.unit}</td>
+        <td>${statusBadge(i.status)}</td>
+        <td>${formatDate(i.created_at)}</td>
+        <td>
+          <a href="inquiries.html" class="btn btn-sm btn-primary">Respond</a>
+        </td>
+      </tr>`).join('');
+  }
+
+  loadStats();
+  loadCropPlans();
+  loadWeather();
+  loadInquiries();
+</script>
+</body>
+</html>

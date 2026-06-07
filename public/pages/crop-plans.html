@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crop Plans – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Farm Operations</li>
+      <li><a class="nav-item" href="farm-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item active" href="crop-plans.html">
+        <i class="material-icons">eco</i> Crop Plans</a></li>
+      <li><a class="nav-item" href="harvests.html">
+        <i class="material-icons">agriculture</i> Harvests</a></li>
+      <li class="nav-section-label">Intelligence</li>
+      <li><a class="nav-item" href="weather.html">
+        <i class="material-icons">cloud</i> Weather</a></li>
+      <li><a class="nav-item" href="market-prices.html">
+        <i class="material-icons">bar_chart</i> Market Prices</a></li>
+      <li class="nav-section-label">Commerce</li>
+      <li><a class="nav-item" href="my-listings.html">
+        <i class="material-icons">storefront</i> My Listings</a></li>
+      <li><a class="nav-item" href="inquiries.html">
+        <i class="material-icons">question_answer</i> Inquiries</a></li>
+      <li><a class="nav-item" href="orders.html">
+        <i class="material-icons">receipt_long</i> Orders</a></li>
+      <li class="nav-section-label">Reports</li>
+      <li><a class="nav-item" href="reports.html">
+        <i class="material-icons">assessment</i> Reports</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">M</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Manager</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">FarmManager</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Crop Plans</h1>
+        <p class="page-subtitle">Plan and manage all farm crop cycles</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('create-plan-modal')">
+        <i class="material-icons" style="font-size:18px">add</i> New Crop Plan
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <select id="filter-status" class="form-control" style="width:180px"
+                onchange="loadPlans()">
+          <option value="">All Statuses</option>
+          <option value="Planned">Planned</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Harvested">Harvested</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <input type="text" id="filter-plot" class="form-control"
+               style="width:200px" placeholder="Filter by field/plot"
+               oninput="loadPlans()"/>
+        <button class="btn btn-secondary" onclick="loadPlans()">
+          <i class="material-icons" style="font-size:18px">refresh</i> Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Plans table -->
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Crop Type</th><th>Field / Plot</th>
+              <th>Planting Date</th><th>Expected Harvest</th>
+              <th>Assigned Staff</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="plans-body">
+            <tr><td colspan="7" style="text-align:center;
+              padding:28px;color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Create Crop Plan Modal -->
+<div class="modal-overlay" id="create-plan-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Create New Crop Plan</h3>
+      <button class="modal-close" onclick="closeModal('create-plan-modal')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Crop Type</label>
+      <input type="text" id="cropType" class="form-control"
+             placeholder="e.g. Tomato, Wheat, Maize"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Field / Plot</label>
+      <input type="text" id="fieldPlot" class="form-control"
+             placeholder="e.g. Field A, Block 3"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Planting Date</label>
+        <input type="date" id="plantingDate" class="form-control"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Expected Harvest Date</label>
+        <input type="date" id="harvestDate" class="form-control"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Assign Staff</label>
+      <div id="staff-list" style="display:flex;flex-direction:column;gap:6px;
+           max-height:160px;overflow-y:auto;border:1.5px solid #cfd8dc;
+           border-radius:6px;padding:8px">
+        <p style="color:var(--gray-mid);font-size:13px">Loading staff...</p>
+      </div>
+    </div>
+    <p id="create-error" style="color:var(--red);font-size:13px;display:none"></p>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('create-plan-modal')">
+        Cancel
+      </button>
+      <button class="btn btn-primary" onclick="createPlan()" id="create-btn">
+        <i class="material-icons" style="font-size:18px">save</i> Create Plan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- View Plan Modal -->
+<div class="modal-overlay" id="view-plan-modal">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="view-plan-title">Crop Plan Details</h3>
+      <button class="modal-close" onclick="closeModal('view-plan-modal')">✕</button>
+    </div>
+    <div id="view-plan-content"></div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('FarmManager');
+
+  let staffMembers = [];
+
+  // Load staff for assignment
+  async function loadStaff() {
+    const res = await apiRequest('GET', '/admin/users?role=FarmStaff&status=Approved');
+    staffMembers = res?.data?.users || [];
+    const container = document.getElementById('staff-list');
+
+    if (staffMembers.length === 0) {
+      container.innerHTML = `<p style="color:var(--gray-mid);font-size:13px">
+        No approved staff found.</p>`;
+      return;
+    }
+
+    container.innerHTML = staffMembers.map(s => `
+      <label style="display:flex;align-items:center;gap:8px;
+                    font-size:13px;cursor:pointer;padding:4px">
+        <input type="checkbox" value="${s.user_id}" class="staff-checkbox"/>
+        ${s.full_name}
+        <span style="color:var(--gray-mid);font-size:11px">(${s.email})</span>
+      </label>`).join('');
+  }
+
+  // Load crop plans
+  async function loadPlans() {
+    const tbody  = document.getElementById('plans-body');
+    const status = document.getElementById('filter-status').value;
+    const plot   = document.getElementById('filter-plot').value;
+
+    let url = '/cropplans?';
+    if (status) url += `status=${encodeURIComponent(status)}&`;
+    if (plot)   url += `fieldPlot=${encodeURIComponent(plot)}`;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;
+      padding:28px"><div class="spinner" style="margin:0 auto"></div></td></tr>`;
+
+    const res   = await apiRequest('GET', url);
+    const plans = res?.data?.cropPlans || [];
+
+    if (plans.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;
+        padding:28px;color:var(--gray-mid)">No crop plans found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = plans.map(p => `
+      <tr>
+        <td><strong>${p.crop_type}</strong></td>
+        <td>${p.field_plot}</td>
+        <td>${formatDate(p.planting_date)}</td>
+        <td>${formatDate(p.expected_harvest_date)}</td>
+        <td>${(p.assignedStaff || []).map(s =>
+          `<span class="badge badge-blue">${s.full_name}</span>`
+        ).join(' ') || '<span style="color:var(--gray-mid)">—</span>'}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td>
+          <button class="btn btn-sm btn-secondary"
+                  onclick="viewPlan('${p.plan_id}')">
+            <i class="material-icons" style="font-size:16px">visibility</i>
+          </button>
+          ${p.status !== 'Harvested' && p.status !== 'Cancelled'
+            ? `<button class="btn btn-sm btn-danger"
+                       onclick="cancelPlan('${p.plan_id}','${p.crop_type}')">
+                 <i class="material-icons" style="font-size:16px">cancel</i>
+               </button>`
+            : ''
+          }
+        </td>
+      </tr>`).join('');
+  }
+
+  // Create crop plan
+  async function createPlan() {
+    const btn   = document.getElementById('create-btn');
+    const errEl = document.getElementById('create-error');
+    errEl.style.display = 'none';
+
+    const checkedStaff = [...document.querySelectorAll('.staff-checkbox:checked')]
+      .map(cb => cb.value);
+
+    const body = {
+      cropType           : document.getElementById('cropType').value.trim(),
+      fieldPlot          : document.getElementById('fieldPlot').value.trim(),
+      plantingDate       : document.getElementById('plantingDate').value,
+      expectedHarvestDate: document.getElementById('harvestDate').value,
+      staffIDs           : checkedStaff
+    };
+
+    if (!body.cropType || !body.fieldPlot ||
+        !body.plantingDate || !body.expectedHarvestDate) {
+      errEl.style.display = 'block';
+      errEl.textContent   = 'All fields are required.';
+      return;
+    }
+    if (checkedStaff.length === 0) {
+      errEl.style.display = 'block';
+      errEl.textContent   = 'Please assign at least one staff member.';
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Creating...';
+
+    const res = await apiRequest('POST', '/cropplans', body);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="material-icons" style="font-size:18px">save</i> Create Plan';
+
+    if (res?.ok) {
+      closeModal('create-plan-modal');
+      showToast('Crop plan created successfully!');
+      loadPlans();
+      // Reset form
+      ['cropType','fieldPlot','plantingDate','harvestDate'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.querySelectorAll('.staff-checkbox').forEach(cb => cb.checked = false);
+    } else {
+      errEl.style.display = 'block';
+      errEl.textContent   = res?.data?.message || 'Failed to create plan.';
+    }
+  }
+
+  // View plan detail
+  async function viewPlan(planID) {
+    openModal('view-plan-modal');
+    document.getElementById('view-plan-content').innerHTML =
+      '<div class="spinner"></div>';
+
+    const res = await apiRequest('GET', `/cropplans/${planID}`);
+    if (!res?.ok) return;
+
+    const { cropPlan, assignedStaff, fieldActivities, harvestRecords } = res.data;
+
+    document.getElementById('view-plan-title').textContent =
+      `${cropPlan.crop_type} – ${cropPlan.field_plot}`;
+
+    document.getElementById('view-plan-content').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div><span style="font-size:12px;color:var(--gray-mid)">Status</span>
+          <div>${statusBadge(cropPlan.status)}</div></div>
+        <div><span style="font-size:12px;color:var(--gray-mid)">Field</span>
+          <div style="font-size:14px;font-weight:500">${cropPlan.field_plot}</div></div>
+        <div><span style="font-size:12px;color:var(--gray-mid)">Planting Date</span>
+          <div style="font-size:14px">${formatDate(cropPlan.planting_date)}</div></div>
+        <div><span style="font-size:12px;color:var(--gray-mid)">Expected Harvest</span>
+          <div style="font-size:14px">${formatDate(cropPlan.expected_harvest_date)}</div></div>
+      </div>
+
+      <h4 style="font-size:14px;font-weight:600;margin-bottom:8px">
+        Assigned Staff (${assignedStaff.length})
+      </h4>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+        ${assignedStaff.map(s =>
+          `<span class="badge badge-blue">${s.full_name}</span>`
+        ).join('') || '<span style="color:var(--gray-mid);font-size:13px">None</span>'}
+      </div>
+
+      <h4 style="font-size:14px;font-weight:600;margin-bottom:8px">
+        Field Activities (${fieldActivities.length})
+      </h4>
+      <div style="max-height:140px;overflow-y:auto">
+        ${fieldActivities.length === 0
+          ? '<p style="color:var(--gray-mid);font-size:13px">No activities logged.</p>'
+          : fieldActivities.map(a => `
+              <div style="display:flex;justify-content:space-between;
+                          padding:6px 0;border-bottom:1px solid var(--gray-light);
+                          font-size:13px">
+                <span>${a.activity_type} – ${a.notes || '—'}</span>
+                <span style="color:var(--gray-mid)">${formatDate(a.activity_date)}</span>
+              </div>`).join('')
+        }
+      </div>
+
+      <h4 style="font-size:14px;font-weight:600;margin:16px 0 8px">
+        Harvest Records (${harvestRecords.length})
+      </h4>
+      ${harvestRecords.length === 0
+        ? '<p style="color:var(--gray-mid);font-size:13px">No harvests recorded.</p>'
+        : harvestRecords.map(h => `
+            <div style="display:flex;justify-content:space-between;
+                        padding:6px 0;border-bottom:1px solid var(--gray-light);
+                        font-size:13px">
+              <span>${formatNumber(h.quantity_harvested)} ${h.unit}
+                    – ${statusBadge(h.quality_grade)}</span>
+              <span style="color:var(--gray-mid)">${formatDate(h.harvest_date)}</span>
+            </div>`).join('')
+      }`;
+  }
+
+  // Cancel plan
+  async function cancelPlan(planID, cropType) {
+    if (!confirm(`Cancel crop plan for "${cropType}"?`)) return;
+    const res = await apiRequest('PATCH', `/cropplans/${planID}/cancel`,
+      { reason: 'Cancelled by manager' });
+    if (res?.ok) {
+      showToast('Crop plan cancelled.');
+      loadPlans();
+    } else {
+      showToast(res?.data?.message || 'Error cancelling plan.', 'error');
+    }
+  }
+
+  loadStaff();
+  loadPlans();
+</script>
+</body>
+</html> 

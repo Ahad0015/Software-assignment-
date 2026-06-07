@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Farm Operations</li>
+      <li><a class="nav-item" href="farm-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item" href="crop-plans.html">
+        <i class="material-icons">eco</i> Crop Plans</a></li>
+      <li><a class="nav-item" href="harvests.html">
+        <i class="material-icons">agriculture</i> Harvests</a></li>
+      <li class="nav-section-label">Intelligence</li>
+      <li><a class="nav-item" href="weather.html">
+        <i class="material-icons">cloud</i> Weather</a></li>
+      <li><a class="nav-item" href="market-prices.html">
+        <i class="material-icons">bar_chart</i> Market Prices</a></li>
+      <li class="nav-section-label">Commerce</li>
+      <li><a class="nav-item" href="my-listings.html">
+        <i class="material-icons">storefront</i> My Listings</a></li>
+      <li><a class="nav-item" href="inquiries.html">
+        <i class="material-icons">question_answer</i> Inquiries</a></li>
+      <li><a class="nav-item" href="orders.html">
+        <i class="material-icons">receipt_long</i> Orders</a></li>
+      <li class="nav-section-label">Reports</li>
+      <li><a class="nav-item active" href="reports.html">
+        <i class="material-icons">assessment</i> Reports</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">M</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Manager</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">FarmManager</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Reports & Analytics</h1>
+        <p class="page-subtitle">Generate and export business reports</p>
+      </div>
+    </div>
+
+    <!-- Report type cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+                gap:16px;margin-bottom:24px">
+
+      <div class="card" style="border-top:4px solid var(--green-main)">
+        <div style="font-size:32px;margin-bottom:8px">💰</div>
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:6px">
+          Sales & Revenue</h3>
+        <p style="font-size:13px;color:var(--gray-mid);margin-bottom:16px">
+          Revenue summaries, order breakdown, buyer analysis
+        </p>
+        <div class="form-row" style="margin-bottom:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">From</label>
+            <input type="date" id="sales-from" class="form-control"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">To</label>
+            <input type="date" id="sales-to" class="form-control"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center"
+                onclick="generateReport('sales')">
+          <i class="material-icons" style="font-size:18px">bar_chart</i>
+          Generate Report
+        </button>
+      </div>
+
+      <div class="card" style="border-top:4px solid var(--blue)">
+        <div style="font-size:32px;margin-bottom:8px">📦</div>
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:6px">
+          Inventory Report</h3>
+        <p style="font-size:13px;color:var(--gray-mid);margin-bottom:16px">
+          Current stock levels, usage history, low-stock summary
+        </p>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Stock Status Filter</label>
+          <select id="inv-stock-status" class="form-control">
+            <option value="">All Items</option>
+            <option value="low">Low Stock Only</option>
+            <option value="out">Out of Stock Only</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center"
+                onclick="generateReport('inventory')">
+          <i class="material-icons" style="font-size:18px">inventory_2</i>
+          Generate Report
+        </button>
+      </div>
+
+      <div class="card" style="border-top:4px solid var(--green-mid)">
+        <div style="font-size:32px;margin-bottom:8px">🌾</div>
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:6px">
+          Crop Performance</h3>
+        <p style="font-size:13px;color:var(--gray-mid);margin-bottom:16px">
+          Yield per crop, harvest summaries, field utilization
+        </p>
+        <div class="form-row" style="margin-bottom:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">From</label>
+            <input type="date" id="crop-from" class="form-control"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">To</label>
+            <input type="date" id="crop-to" class="form-control"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center"
+                onclick="generateReport('crops')">
+          <i class="material-icons" style="font-size:18px">eco</i>
+          Generate Report
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Report result -->
+    <div class="card" id="report-result" style="display:none">
+      <div class="card-header">
+        <h3 class="card-title" id="report-result-title">Report Results</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV()"
+                  id="export-btn" style="display:none">
+            <i class="material-icons" style="font-size:16px">download</i>
+            Export CSV
+          </button>
+          <button class="btn btn-secondary btn-sm"
+                  onclick="document.getElementById('report-result')
+                    .style.display='none'">
+            ✕ Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div id="report-summary" style="display:grid;
+           grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+           gap:12px;margin-bottom:20px"></div>
+
+      <!-- Data table -->
+      <div class="table-wrapper">
+        <table>
+          <thead id="report-thead"></thead>
+          <tbody id="report-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Saved reports -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Previously Generated Reports</h3>
+        <button class="btn btn-sm btn-secondary" onclick="loadSavedReports()">
+          <i class="material-icons" style="font-size:16px">refresh</i>
+        </button>
+      </div>
+      <div id="saved-reports"><div class="spinner"></div></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('FarmManager', 'InventoryOfficer', 'SystemAdmin');
+
+  let currentReportID = null;
+
+  // Set default dates
+  window.addEventListener('DOMContentLoaded', () => {
+    const today = new Date().toISOString().split('T')[0];
+    const yearAgo = new Date();
+    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+    const yearAgoStr = yearAgo.toISOString().split('T')[0];
+
+    ['sales-from','crop-from'].forEach(id => {
+      document.getElementById(id).value = yearAgoStr;
+    });
+    ['sales-to','crop-to'].forEach(id => {
+      document.getElementById(id).value = today;
+    });
+  });
+
+  async function generateReport(type) {
+    const resultCard = document.getElementById('report-result');
+    resultCard.style.display = 'block';
+    document.getElementById('report-summary').innerHTML =
+      '<div class="spinner"></div>';
+    document.getElementById('report-tbody').innerHTML = '';
+    document.getElementById('report-thead').innerHTML = '';
+    document.getElementById('export-btn').style.display = 'none';
+
+    let url = '';
+    if (type === 'sales') {
+      const from = document.getElementById('sales-from').value;
+      const to   = document.getElementById('sales-to').value;
+      if (!from || !to) {
+        showToast('Please select date range.', 'warning');
+        return;
+      }
+      url = `/reports/sales?dateFrom=${from}&dateTo=${to}`;
+    } else if (type === 'inventory') {
+      const stock = document.getElementById('inv-stock-status').value;
+      url = `/reports/inventory?${stock ? 'stockStatus=' + stock : ''}`;
+    } else if (type === 'crops') {
+      const from = document.getElementById('crop-from').value;
+      const to   = document.getElementById('crop-to').value;
+      if (!from || !to) {
+        showToast('Please select date range.', 'warning');
+        return;
+      }
+      url = `/reports/crops?dateFrom=${from}&dateTo=${to}`;
+    }
+
+    const res = await apiRequest('GET', url);
+    if (!res?.ok) {
+      showToast('Failed to generate report.', 'error');
+      return;
+    }
+
+    currentReportID = res.data.reportID;
+    document.getElementById('export-btn').style.display = 'inline-flex';
+
+    const { summary, rows } = res.data;
+    document.getElementById('report-result-title').textContent =
+      `${res.data.reportType} Report`;
+
+    // Summary cards
+    const summaryEl = document.getElementById('report-summary');
+    if (type === 'sales') {
+      summaryEl.innerHTML = `
+        <div style="background:var(--green-bg);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--green-dark)">
+            ${formatCurrency(summary.totalRevenue)}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Total Revenue</div>
+        </div>
+        <div style="background:var(--blue-light);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--blue)">
+            ${summary.totalOrders}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Total Orders</div>
+        </div>`;
+    } else if (type === 'inventory') {
+      summaryEl.innerHTML = `
+        <div style="background:var(--green-bg);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700">${summary.totalItems}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Total Items</div>
+        </div>
+        <div style="background:var(--amber-light);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--amber)">
+            ${summary.lowStockItems}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Low Stock</div>
+        </div>
+        <div style="background:var(--red-light);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--red)">
+            ${summary.outOfStock}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Out of Stock</div>
+        </div>`;
+    } else if (type === 'crops') {
+      summaryEl.innerHTML = `
+        <div style="background:var(--green-bg);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700">${summary.totalPlans}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Total Plans</div>
+        </div>
+        <div style="background:var(--blue-light);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--blue)">
+            ${summary.harvested}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Harvested</div>
+        </div>
+        <div style="background:var(--green-bg);padding:14px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--green-dark)">
+            ${formatNumber(summary.totalYield)} kg</div>
+          <div style="font-size:12px;color:var(--gray-mid)">Total Yield</div>
+        </div>`;
+    }
+
+    // Table
+    if (rows.length === 0) {
+      document.getElementById('report-tbody').innerHTML =
+        `<tr><td colspan="10" style="text-align:center;padding:24px;
+          color:var(--gray-mid)">No data in selected range.</td></tr>`;
+      return;
+    }
+
+    const columns = Object.keys(rows[0]);
+    document.getElementById('report-thead').innerHTML =
+      `<tr>${columns.map(c =>
+        `<th>${c.replace(/_/g,' ').toUpperCase()}</th>`
+      ).join('')}</tr>`;
+
+    document.getElementById('report-tbody').innerHTML = rows.map(r =>
+      `<tr>${columns.map(c => `<td>${r[c] ?? '—'}</td>`).join('')}</tr>`
+    ).join('');
+
+    loadSavedReports();
+    resultCard.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function exportCSV() {
+    if (!currentReportID) return;
+    window.location.href =
+      `http://localhost:3000/api/reports/${currentReportID}/export`;
+  }
+
+  async function loadSavedReports() {
+    const container = document.getElementById('saved-reports');
+    const res = await apiRequest('GET', '/reports');
+    const reports   = res?.data?.reports || [];
+
+    if (reports.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <i class="material-icons">assessment</i>
+        <p>No reports generated yet.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th><th>Date Range</th>
+              <th>Generated At</th><th>Export</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reports.map(r => `
+              <tr>
+                <td>${r.report_type}</td>
+                <td>${formatDate(r.date_range_from)} → ${formatDate(r.date_range_to)}</td>
+                <td>${formatDateTime(r.generated_at)}</td>
+                <td>
+                  <a href="http://localhost:3000/api/reports/${r.report_id}/export"
+                     class="btn btn-sm btn-secondary">
+                    <i class="material-icons" style="font-size:14px">download</i>
+                    CSV
+                  </a>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  loadSavedReports();
+</script>
+</body>
+</html>

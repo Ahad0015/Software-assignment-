@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Harvests – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Farm Operations</li>
+      <li><a class="nav-item" href="farm-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item" href="crop-plans.html">
+        <i class="material-icons">eco</i> Crop Plans</a></li>
+      <li><a class="nav-item active" href="harvests.html">
+        <i class="material-icons">agriculture</i> Harvests</a></li>
+      <li class="nav-section-label">Intelligence</li>
+      <li><a class="nav-item" href="weather.html">
+        <i class="material-icons">cloud</i> Weather</a></li>
+      <li><a class="nav-item" href="market-prices.html">
+        <i class="material-icons">bar_chart</i> Market Prices</a></li>
+      <li class="nav-section-label">Commerce</li>
+      <li><a class="nav-item" href="my-listings.html">
+        <i class="material-icons">storefront</i> My Listings</a></li>
+      <li><a class="nav-item" href="inquiries.html">
+        <i class="material-icons">question_answer</i> Inquiries</a></li>
+      <li><a class="nav-item" href="orders.html">
+        <i class="material-icons">receipt_long</i> Orders</a></li>
+      <li class="nav-section-label">Reports</li>
+      <li><a class="nav-item" href="reports.html">
+        <i class="material-icons">assessment</i> Reports</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">M</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Manager</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">FarmManager</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Harvest Records</h1>
+        <p class="page-subtitle">Record and track all crop harvest outputs</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('record-harvest-modal')">
+        <i class="material-icons" style="font-size:18px">add</i> Record Harvest
+      </button>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="stat-grid" id="harvest-stats">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <input type="date" id="filter-from" class="form-control"
+               style="width:160px" onchange="loadHarvests()"/>
+        <span style="color:var(--gray-mid);font-size:13px">to</span>
+        <input type="date" id="filter-to" class="form-control"
+               style="width:160px" onchange="loadHarvests()"/>
+        <input type="text" id="filter-crop" class="form-control"
+               style="width:180px" placeholder="Filter by crop type"
+               oninput="loadHarvests()"/>
+        <button class="btn btn-secondary" onclick="clearFilters()">
+          <i class="material-icons" style="font-size:18px">clear</i> Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Harvests table -->
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Crop Type</th><th>Field / Plot</th>
+              <th>Quantity</th><th>Unit</th>
+              <th>Quality Grade</th><th>Harvest Date</th>
+              <th>Inventory Updated</th>
+            </tr>
+          </thead>
+          <tbody id="harvests-body">
+            <tr><td colspan="7" style="text-align:center;
+              padding:28px;color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Record Harvest Modal -->
+<div class="modal-overlay" id="record-harvest-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Record Harvest Output</h3>
+      <button class="modal-close" onclick="closeModal('record-harvest-modal')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Select Crop Plan</label>
+      <select id="h-planID" class="form-control">
+        <option value="">Loading crop plans...</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Quantity Harvested</label>
+        <input type="number" id="h-qty" class="form-control"
+               placeholder="e.g. 150.5" min="0" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unit</label>
+        <select id="h-unit" class="form-control">
+          <option value="kg">kg</option>
+          <option value="ton">ton</option>
+          <option value="quintal">quintal</option>
+          <option value="bunch">bunch</option>
+          <option value="piece">piece</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Harvest Date</label>
+        <input type="date" id="h-date" class="form-control"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quality Grade</label>
+        <select id="h-grade" class="form-control">
+          <option value="Grade A">Grade A</option>
+          <option value="Grade B">Grade B</option>
+          <option value="Grade C">Grade C</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-bottom:0">
+      <i class="material-icons">info</i>
+      Recording a harvest will automatically update inventory stock levels.
+    </div>
+
+    <p id="harvest-error" style="color:var(--red);font-size:13px;
+       margin-top:8px;display:none"></p>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary"
+              onclick="closeModal('record-harvest-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="recordHarvest()" id="harvest-btn">
+        <i class="material-icons" style="font-size:18px">save</i> Record Harvest
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('FarmManager');
+
+  // Set default date range (last 3 months)
+  window.addEventListener('DOMContentLoaded', () => {
+    const today = new Date();
+    const from  = new Date();
+    from.setMonth(from.getMonth() - 3);
+    document.getElementById('filter-to').value   =
+      today.toISOString().split('T')[0];
+    document.getElementById('filter-from').value =
+      from.toISOString().split('T')[0];
+    document.getElementById('h-date').value =
+      today.toISOString().split('T')[0];
+  });
+
+  // Load active crop plans for dropdown
+  async function loadCropPlansDropdown() {
+    const res   = await apiRequest('GET', '/cropplans?status=In Progress');
+    const plans = res?.data?.cropPlans || [];
+    const sel   = document.getElementById('h-planID');
+
+    if (plans.length === 0) {
+      sel.innerHTML = '<option value="">No active crop plans found</option>';
+      return;
+    }
+    sel.innerHTML = `<option value="">Select a crop plan</option>` +
+      plans.map(p =>
+        `<option value="${p.plan_id}">
+           ${p.crop_type} – ${p.field_plot}
+           (planted ${formatDate(p.planting_date)})
+         </option>`
+      ).join('');
+  }
+
+  // Load harvests
+  async function loadHarvests() {
+    const tbody   = document.getElementById('harvests-body');
+    const from    = document.getElementById('filter-from').value;
+    const to      = document.getElementById('filter-to').value;
+    const crop    = document.getElementById('filter-crop').value;
+
+    let url = '/harvests?';
+    if (from) url += `from=${from}&`;
+    if (to)   url += `to=${to}&`;
+    if (crop) url += `cropType=${encodeURIComponent(crop)}`;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:28px">
+      <div class="spinner" style="margin:0 auto"></div></td></tr>`;
+
+    const res      = await apiRequest('GET', url);
+    const harvests = res?.data?.harvests || [];
+
+    // Update stats
+    const total     = harvests.reduce((s,h) =>
+      s + parseFloat(h.quantity_harvested), 0);
+    const gradeA    = harvests.filter(h => h.quality_grade === 'Grade A').length;
+    const cropTypes = [...new Set(harvests.map(h => h.crop_type))].length;
+
+    document.getElementById('harvest-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="material-icons">agriculture</i></div>
+        <div><div class="stat-value">${harvests.length}</div>
+        <div class="stat-label">Total Records</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="material-icons">scale</i></div>
+        <div><div class="stat-value">${formatNumber(total)}</div>
+        <div class="stat-label">Total Yield</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="material-icons">grade</i></div>
+        <div><div class="stat-value">${gradeA}</div>
+        <div class="stat-label">Grade A Harvests</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">
+          <i class="material-icons">eco</i></div>
+        <div><div class="stat-value">${cropTypes}</div>
+        <div class="stat-label">Crop Types</div></div>
+      </div>`;
+
+    if (harvests.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;
+        padding:28px;color:var(--gray-mid)">No harvest records found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = harvests.map(h => `
+      <tr>
+        <td><strong>${h.crop_type}</strong></td>
+        <td>${h.field_plot || '—'}</td>
+        <td style="font-weight:600">${formatNumber(h.quantity_harvested)}</td>
+        <td>${h.unit}</td>
+        <td>${statusBadge(h.quality_grade)}</td>
+        <td>${formatDate(h.harvest_date)}</td>
+        <td><span class="badge badge-green">
+          <i class="material-icons" style="font-size:12px;vertical-align:middle">
+            check_circle</i> Updated
+        </span></td>
+      </tr>`).join('');
+  }
+
+  // Record harvest
+  async function recordHarvest() {
+    const btn   = document.getElementById('harvest-btn');
+    const errEl = document.getElementById('harvest-error');
+    errEl.style.display = 'none';
+
+    const body = {
+      cropPlanID       : document.getElementById('h-planID').value,
+      quantityHarvested: parseFloat(document.getElementById('h-qty').value),
+      unit             : document.getElementById('h-unit').value,
+      harvestDate      : document.getElementById('h-date').value,
+      qualityGrade     : document.getElementById('h-grade').value
+    };
+
+    if (!body.cropPlanID || !body.quantityHarvested || !body.harvestDate) {
+      errEl.style.display = 'block';
+      errEl.textContent   = 'Please fill in all required fields.';
+      return;
+    }
+    if (body.quantityHarvested <= 0) {
+      errEl.style.display = 'block';
+      errEl.textContent   = 'Quantity must be greater than 0.';
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Recording...';
+
+    const res = await apiRequest('POST', '/harvests', body);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="material-icons" style="font-size:18px">save</i> Record Harvest';
+
+    if (res?.ok) {
+      closeModal('record-harvest-modal');
+      const inv = res.data.updatedInventory;
+      showToast(`Harvest recorded! Inventory updated: ${inv?.current_stock} ${inv?.unit}`);
+      loadHarvests();
+    } else {
+      errEl.style.display = 'block';
+      errEl.textContent   = res?.data?.message || 'Failed to record harvest.';
+    }
+  }
+
+  function clearFilters() {
+    document.getElementById('filter-crop').value = '';
+    const today = new Date();
+    const from  = new Date();
+    from.setMonth(from.getMonth() - 3);
+    document.getElementById('filter-to').value   =
+      today.toISOString().split('T')[0];
+    document.getElementById('filter-from').value =
+      from.toISOString().split('T')[0];
+    loadHarvests();
+  }
+
+  loadCropPlansDropdown();
+  loadHarvests();
+</script>
+</body>
+</html> 

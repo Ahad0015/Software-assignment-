@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Inquiries – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Marketplace</li>
+      <li><a class="nav-item" href="buyer-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item" href="marketplace.html">
+        <i class="material-icons">storefront</i> Browse Products</a></li>
+      <li><a class="nav-item active" href="my-inquiries.html">
+        <i class="material-icons">question_answer</i> My Inquiries</a></li>
+      <li><a class="nav-item" href="my-orders.html">
+        <i class="material-icons">receipt_long</i> My Orders</a></li>
+      <li class="nav-section-label">Info</li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">B</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Buyer</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Buyer</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Inquiries</h1>
+        <p class="page-subtitle">Track all your purchase inquiries and responses</p>
+      </div>
+      <a href="marketplace.html" class="btn btn-primary">
+        <i class="material-icons" style="font-size:18px">add</i> New Inquiry
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="inq-stats">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <select id="filter-status" class="form-control" style="width:200px"
+                onchange="loadInquiries()">
+          <option value="">All Statuses</option>
+          <option value="Submitted">Submitted</option>
+          <option value="Under Review">Under Review</option>
+          <option value="Accepted">Accepted</option>
+          <option value="Declined">Declined</option>
+          <option value="Counter-Offered">Counter-Offered</option>
+          <option value="Order Created">Order Created</option>
+          <option value="Fulfilled">Fulfilled</option>
+        </select>
+        <button class="btn btn-secondary" onclick="loadInquiries()">
+          <i class="material-icons" style="font-size:18px">refresh</i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Inquiries list -->
+    <div id="inquiries-container">
+      <div class="spinner"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Counter Offer Response Modal -->
+<div class="modal-overlay" id="counter-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">Farm Manager's Response</h3>
+      <button class="modal-close" onclick="closeModal('counter-modal')">✕</button>
+    </div>
+    <div id="counter-detail"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('counter-modal')">Close</button>
+      <a href="marketplace.html" class="btn btn-primary">
+        <i class="material-icons" style="font-size:18px">storefront</i>
+        Browse More Products
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('Buyer');
+
+  async function loadInquiries() {
+    const container = document.getElementById('inquiries-container');
+    const status    = document.getElementById('filter-status').value;
+    let url         = '/inquiries?';
+    if (status) url += `status=${encodeURIComponent(status)}`;
+
+    container.innerHTML = '<div class="spinner"></div>';
+
+    const res       = await apiRequest('GET', url);
+    const inquiries = res?.data?.inquiries || [];
+
+    // Stats
+    const submitted  = inquiries.filter(i => i.status === 'Submitted').length;
+    const accepted   = inquiries.filter(i =>
+      ['Accepted','Order Created','Fulfilled'].includes(i.status)).length;
+    const declined   = inquiries.filter(i => i.status === 'Declined').length;
+    const countered  = inquiries.filter(i => i.status === 'Counter-Offered').length;
+
+    document.getElementById('inq-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="material-icons">pending_actions</i></div>
+        <div><div class="stat-value">${inquiries.length}</div>
+        <div class="stat-label">Total Inquiries</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="material-icons">hourglass_empty</i></div>
+        <div><div class="stat-value">${submitted}</div>
+        <div class="stat-label">Awaiting Response</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">check_circle</i></div>
+        <div><div class="stat-value">${accepted}</div>
+        <div class="stat-label">Accepted</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="material-icons">cancel</i></div>
+        <div><div class="stat-value">${declined}</div>
+        <div class="stat-label">Declined</div></div>
+      </div>`;
+
+    if (inquiries.length === 0) {
+      container.innerHTML = `
+        <div class="card">
+          <div class="empty-state">
+            <i class="material-icons">question_answer</i>
+            <p>No inquiries yet.</p>
+            <span>Browse the marketplace and submit your first inquiry.</span>
+            <br/><br/>
+            <a href="marketplace.html" class="btn btn-primary"
+               style="display:inline-flex">
+              <i class="material-icons" style="font-size:18px">storefront</i>
+              Browse Products
+            </a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = inquiries.map(i => {
+      const statusColors = {
+        'Submitted'     : { bg:'var(--blue-light)',  color:'var(--blue)',       icon:'pending' },
+        'Under Review'  : { bg:'var(--blue-light)',  color:'var(--blue)',       icon:'preview' },
+        'Accepted'      : { bg:'var(--green-bg)',    color:'var(--green-main)', icon:'check_circle' },
+        'Declined'      : { bg:'var(--red-light)',   color:'var(--red)',        icon:'cancel' },
+        'Counter-Offered':{ bg:'var(--amber-light)', color:'var(--amber)',      icon:'forum' },
+        'Order Created' : { bg:'var(--green-bg)',    color:'var(--green-main)', icon:'shopping_bag' },
+        'Fulfilled'     : { bg:'var(--green-bg)',    color:'var(--green-main)', icon:'done_all' },
+        'Cancelled'     : { bg:'var(--red-light)',   color:'var(--red)',        icon:'block' },
+      };
+      const sc = statusColors[i.status] || { bg:'var(--gray-light)', color:'var(--gray-mid)', icon:'help' };
+
+      return `
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;
+                      flex-wrap:wrap;gap:12px">
+            <!-- Left: product info -->
+            <div style="display:flex;align-items:flex-start;gap:14px;flex:1">
+              <div style="width:52px;height:52px;background:var(--green-bg);
+                          border-radius:var(--radius-sm);display:flex;align-items:center;
+                          justify-content:center;font-size:24px;flex-shrink:0">
+                🌿
+              </div>
+              <div>
+                <div style="font-size:16px;font-weight:600;margin-bottom:2px">
+                  ${i.product_name}
+                </div>
+                <div style="font-size:13px;color:var(--gray-mid);margin-bottom:6px">
+                  Requested: <strong>${formatNumber(i.requested_qty)} ${i.unit}</strong>
+                  ${i.preferred_delivery_date
+                    ? ` · Delivery: ${formatDate(i.preferred_delivery_date)}`
+                    : ''}
+                </div>
+                ${i.notes
+                  ? `<div style="font-size:12px;color:var(--gray-mid);
+                                 font-style:italic">"${i.notes}"</div>`
+                  : ''}
+              </div>
+            </div>
+
+            <!-- Right: status -->
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;
+                          background:${sc.bg};color:${sc.color};
+                          border-radius:20px;font-size:13px;font-weight:500">
+                <i class="material-icons" style="font-size:16px">${sc.icon}</i>
+                ${i.status}
+              </div>
+              <div style="font-size:11px;color:var(--gray-mid)">
+                Submitted ${formatDate(i.created_at)}
+              </div>
+            </div>
+          </div>
+
+          <!-- Farm manager response -->
+          ${i.farm_manager_response ? `
+            <div style="margin-top:12px;padding:12px;background:var(--gray-light);
+                        border-radius:var(--radius-sm);border-left:3px solid
+                        ${i.status==='Declined'?'var(--red)':i.status==='Counter-Offered'?'var(--amber)':'var(--green-main)'}">
+              <div style="font-size:12px;font-weight:600;color:var(--gray-mid);
+                          margin-bottom:4px">
+                Farm Manager's Response:
+              </div>
+              <div style="font-size:13px;color:var(--gray-dark)">
+                ${i.farm_manager_response}
+              </div>
+            </div>` : ''
+          }
+
+          <!-- Actions -->
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+            ${i.status === 'Counter-Offered' ? `
+              <button class="btn btn-sm btn-amber"
+                      onclick="viewResponse('${i.farm_manager_response?.replace(/'/g,'&apos;')||''}','${i.product_name}')">
+                <i class="material-icons" style="font-size:16px">forum</i>
+                View Counter-Offer
+              </button>` : ''
+            }
+            ${['Accepted','Order Created'].includes(i.status) ? `
+              <a href="my-orders.html" class="btn btn-sm btn-primary">
+                <i class="material-icons" style="font-size:16px">receipt_long</i>
+                View Order
+              </a>` : ''
+            }
+            ${i.status === 'Submitted' ? `
+              <span style="font-size:12px;color:var(--gray-mid);
+                           align-self:center">
+                ⏳ Waiting for farm manager response...
+              </span>` : ''
+            }
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function viewResponse(response, product) {
+    document.getElementById('counter-detail').innerHTML = `
+      <div style="background:var(--amber-light);border-radius:var(--radius-sm);
+                  padding:14px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:6px">
+          💬 Counter-offer for: ${product}
+        </div>
+        <div style="font-size:14px;color:var(--gray-dark)">${response}</div>
+      </div>
+      <div class="alert alert-info">
+        <i class="material-icons">info</i>
+        To accept this counter-offer, please contact the farm directly or
+        submit a new inquiry with the updated terms.
+      </div>`;
+    openModal('counter-modal');
+  }
+
+  loadInquiries();
+</script>
+</body>
+</html>

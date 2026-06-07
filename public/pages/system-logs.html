@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>System Logs – Amdan Organics</title>
+
+  <link rel="stylesheet" href="../css/style.css"/>
+
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+
+    <ul class="sidebar-nav">
+
+      <li class="nav-section-label">
+        Administration
+      </li>
+
+      <li>
+        <a class="nav-item" href="admin-dashboard.html">
+          <i class="material-icons">dashboard</i>
+          Dashboard
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="listing-approval.html">
+          <i class="material-icons">fact_check</i>
+          Listing Approval
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item active" href="system-logs.html">
+          <i class="material-icons">receipt_long</i>
+          System Logs
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="advisories.html">
+          <i class="material-icons">campaign</i>
+          Advisories
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+    <!-- HEADER -->
+
+    <div class="page-header">
+
+      <div>
+
+        <h1 class="page-title">
+          System Logs
+        </h1>
+
+        <p class="page-subtitle">
+          Monitor platform activities and system events
+        </p>
+
+      </div>
+
+      <button
+        class="btn btn-primary"
+        onclick="refreshLogs()"
+      >
+
+        <i class="material-icons" style="font-size:18px">
+          refresh
+        </i>
+
+        Refresh
+
+      </button>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stat-grid" id="logs-stats">
+
+      <div class="spinner"></div>
+
+    </div>
+
+    <!-- SEARCH -->
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+
+      <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap
+      ">
+
+        <input
+          type="text"
+          id="search-input"
+          class="form-control"
+          placeholder="Search logs..."
+          onkeyup="loadLogs()"
+          style="max-width:320px"
+        />
+
+      </div>
+
+    </div>
+
+    <!-- LOGS -->
+
+    <div id="logs-container">
+
+      <div class="spinner"></div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+/*
+  INITIAL DATA
+*/
+
+if(!localStorage.getItem('systemLogs')){
+
+  localStorage.setItem(
+
+    'systemLogs',
+
+    JSON.stringify([
+
+      {
+        id:1,
+        type:'Success',
+        user:'Admin',
+        action:'Approved Organic Tomato listing',
+        date:'07 Jun 2026',
+        time:'09:20 AM'
+      },
+
+      {
+        id:2,
+        type:'Warning',
+        user:'System',
+        action:'Low inventory warning triggered',
+        date:'07 Jun 2026',
+        time:'10:15 AM'
+      },
+
+      {
+        id:3,
+        type:'Error',
+        user:'Security',
+        action:'Failed admin login attempt',
+        date:'07 Jun 2026',
+        time:'11:00 AM'
+      },
+
+      {
+        id:4,
+        type:'Info',
+        user:'Buyer',
+        action:'Submitted inquiry for Organic Tomato',
+        date:'07 Jun 2026',
+        time:'11:45 AM'
+      },
+
+      {
+        id:5,
+        type:'Success',
+        user:'Farmer',
+        action:'Created marketplace listing',
+        date:'07 Jun 2026',
+        time:'01:10 PM'
+      }
+
+    ])
+
+  );
+
+}
+
+/*
+  LOAD LOGS
+*/
+
+function loadLogs(){
+
+  const container =
+    document.getElementById('logs-container');
+
+  const keyword =
+    document.getElementById('search-input')
+    .value
+    .toLowerCase();
+
+  let logs =
+    JSON.parse(
+      localStorage.getItem('systemLogs')
+    ) || [];
+
+  /*
+    SEARCH
+  */
+
+  if(keyword){
+
+    logs = logs.filter(item =>
+
+      item.user.toLowerCase().includes(keyword)
+      ||
+      item.action.toLowerCase().includes(keyword)
+      ||
+      item.type.toLowerCase().includes(keyword)
+
+    );
+
+  }
+
+  /*
+    STATS
+  */
+
+  const success =
+    logs.filter(i=>i.type==='Success').length;
+
+  const warning =
+    logs.filter(i=>i.type==='Warning').length;
+
+  const error =
+    logs.filter(i=>i.type==='Error').length;
+
+  const info =
+    logs.filter(i=>i.type==='Info').length;
+
+  document.getElementById(
+    'logs-stats'
+  ).innerHTML = `
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">receipt_long</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${logs.length}
+        </div>
+
+        <div class="stat-label">
+          Total Logs
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+        <i class="material-icons">check_circle</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${success}
+        </div>
+
+        <div class="stat-label">
+          Success
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon amber">
+        <i class="material-icons">warning</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${warning}
+        </div>
+
+        <div class="stat-label">
+          Warnings
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon red">
+        <i class="material-icons">error</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${error}
+        </div>
+
+        <div class="stat-label">
+          Errors
+        </div>
+      </div>
+
+    </div>
+
+  `;
+
+  /*
+    EMPTY
+  */
+
+  if(logs.length === 0){
+
+    container.innerHTML = `
+
+      <div class="card">
+
+        <div class="empty-state">
+
+          <i class="material-icons">
+            search_off
+          </i>
+
+          <p>No logs found.</p>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  /*
+    RENDER
+  */
+
+  container.innerHTML = logs.map(item => {
+
+    const config = {
+
+      Success : {
+        bg:'var(--green-bg)',
+        color:'var(--green-main)',
+        icon:'check_circle'
+      },
+
+      Warning : {
+        bg:'var(--amber-light)',
+        color:'var(--amber)',
+        icon:'warning'
+      },
+
+      Error : {
+        bg:'var(--red-light)',
+        color:'var(--red)',
+        icon:'error'
+      },
+
+      Info : {
+        bg:'var(--blue-light)',
+        color:'var(--blue)',
+        icon:'info'
+      }
+
+    };
+
+    const sc = config[item.type];
+
+    return `
+
+      <div class="card" style="margin-bottom:14px">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          flex-wrap:wrap;
+          gap:14px
+        ">
+
+          <!-- LEFT -->
+
+          <div style="
+            display:flex;
+            gap:14px;
+            flex:1
+          ">
+
+            <div style="
+              width:56px;
+              height:56px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:var(--radius-sm);
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              flex-shrink:0
+            ">
+
+              <i class="material-icons">
+                ${sc.icon}
+              </i>
+
+            </div>
+
+            <div>
+
+              <div style="
+                font-size:16px;
+                font-weight:600;
+                margin-bottom:4px
+              ">
+
+                ${item.action}
+
+              </div>
+
+              <div style="
+                font-size:13px;
+                color:var(--gray-mid);
+                margin-bottom:4px
+              ">
+
+                User:
+                <strong>${item.user}</strong>
+
+              </div>
+
+              <div style="
+                font-size:12px;
+                color:var(--gray-mid)
+              ">
+
+                ${item.date}
+                •
+                ${item.time}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT -->
+
+          <div>
+
+            <div style="
+              display:flex;
+              align-items:center;
+              gap:6px;
+              padding:6px 12px;
+              background:${sc.bg};
+              color:${sc.color};
+              border-radius:20px;
+              font-size:13px;
+              font-weight:500
+            ">
+
+              <i class="material-icons" style="font-size:16px">
+                ${sc.icon}
+              </i>
+
+              ${item.type}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }).join('');
+
+}
+
+/*
+  REFRESH
+*/
+
+function refreshLogs(){
+
+  loadLogs();
+
+}
+
+/*
+  INIT
+*/
+
+loadLogs();
+
+</script>
+
+</body>
+</html>

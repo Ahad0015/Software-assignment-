@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Staff Dashboard – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">My Work</li>
+      <li><a class="nav-item active" href="staff-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item" href="my-tasks.html">
+        <i class="material-icons">task_alt</i> My Tasks</a></li>
+      <li><a class="nav-item" href="log-activity.html">
+        <i class="material-icons">edit_note</i> Log Activity</a></li>
+      <li class="nav-section-label">Info</li>
+      <li><a class="nav-item" href="weather.html">
+        <i class="material-icons">cloud</i> Weather</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">S</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Staff</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">FarmStaff</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" id="welcome-msg">Good morning! 👋</h1>
+        <p class="page-subtitle">Here's your work overview for today</p>
+      </div>
+      <a href="log-activity.html" class="btn btn-primary">
+        <i class="material-icons" style="font-size:18px">edit_note</i>
+        Log Activity
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="staff-stats">
+      <div class="spinner"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- My assigned crop plans -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">My Assigned Crop Plans</h3>
+          <a href="my-tasks.html" class="btn btn-sm btn-outline">View all</a>
+        </div>
+        <div id="my-plans-list"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Weather -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Today's Weather</h3>
+          <a href="weather.html" class="btn btn-sm btn-outline">Details</a>
+        </div>
+        <div id="weather-widget"><div class="spinner"></div></div>
+      </div>
+
+    </div>
+
+    <!-- Quick log activity -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Quick Log Activity</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;
+                  gap:12px;align-items:end">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Crop Plan</label>
+          <select id="quick-plan" class="form-control">
+            <option value="">Select plan...</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Activity Type</label>
+          <select id="quick-type" class="form-control">
+            <option value="Planting">Planting</option>
+            <option value="Irrigation">Irrigation</option>
+            <option value="Fertilization">Fertilization</option>
+            <option value="Pest Control">Pest Control</option>
+            <option value="Harvesting">Harvesting</option>
+            <option value="Observation">Observation</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Date</label>
+          <input type="date" id="quick-date" class="form-control"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Notes</label>
+          <input type="text" id="quick-notes" class="form-control"
+                 placeholder="Brief note..."/>
+        </div>
+        <button class="btn btn-primary" onclick="quickLogActivity()">
+          <i class="material-icons" style="font-size:18px">send</i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent activities -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">My Recent Activities</h3>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Crop Type</th><th>Activity</th>
+              <th>Notes</th><th>Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="activities-body">
+            <tr><td colspan="5" style="text-align:center;
+              padding:20px;color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('FarmStaff');
+
+  // Set greeting based on time
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning'
+                 : hour < 17 ? 'Good afternoon'
+                 : 'Good evening';
+  const user = Auth.getUser();
+  document.getElementById('welcome-msg').textContent =
+    `${greeting}, ${user.fullName?.split(' ')[0] || 'Staff'}! 👋`;
+
+  // Set today's date
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('quick-date').value =
+      new Date().toISOString().split('T')[0];
+  });
+
+  async function loadMyPlans() {
+    const container = document.getElementById('my-plans-list');
+    const res = await apiRequest('GET', '/cropplans/my-plans');
+    const plans = res?.data?.cropPlans || [];
+
+    // Fill quick-log dropdown too
+    const sel = document.getElementById('quick-plan');
+    if (plans.length > 0) {
+      sel.innerHTML = plans
+        .filter(p => p.status !== 'Cancelled' && p.status !== 'Harvested')
+        .map(p => `<option value="${p.plan_id}">
+                     ${p.crop_type} – ${p.field_plot}
+                   </option>`).join('');
+    }
+
+    const active = plans.filter(
+      p => p.status === 'In Progress' || p.status === 'Planned');
+
+    document.getElementById('staff-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">eco</i></div>
+        <div><div class="stat-value">${active.length}</div>
+        <div class="stat-label">Active Plans</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="material-icons">task_alt</i></div>
+        <div><div class="stat-value">${plans.length}</div>
+        <div class="stat-label">Total Assigned</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">agriculture</i></div>
+        <div><div class="stat-value">
+          ${plans.filter(p => p.status === 'Harvested').length}</div>
+        <div class="stat-label">Harvested</div></div>
+      </div>`;
+
+    if (plans.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <i class="material-icons">eco</i>
+        <p>No crop plans assigned to you yet.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = active.slice(0, 5).map(p => `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:10px 0;border-bottom:1px solid var(--gray-light)">
+        <div>
+          <div style="font-size:14px;font-weight:500">${p.crop_type}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">
+            ${p.field_plot} · Harvest: ${formatDate(p.expected_harvest_date)}
+          </div>
+        </div>
+        ${statusBadge(p.status)}
+      </div>`).join('');
+  }
+
+  async function loadWeather() {
+    const container = document.getElementById('weather-widget');
+    const res = await apiRequest('GET', '/weather/dashboard');
+
+    if (!res?.ok) {
+      container.innerHTML = `<div class="alert alert-warning">
+        <i class="material-icons">cloud_off</i> Weather unavailable</div>`;
+      return;
+    }
+
+    const { weather, autoAlerts } = res.data;
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+        <div style="font-size:48px">
+          ${weather.temperature > 30 ? '☀️'
+            : weather.rainfall > 5   ? '🌧️'
+            : weather.humidity > 80  ? '☁️'
+            : '🌤️'}
+        </div>
+        <div>
+          <div style="font-size:32px;font-weight:700;color:var(--blue)">
+            ${weather.temperature}°C
+          </div>
+          <div style="font-size:13px;color:var(--gray-mid)">
+            Humidity ${weather.humidity}% · Wind ${weather.windSpeed}km/h
+          </div>
+        </div>
+      </div>
+      ${(autoAlerts||[]).length > 0
+        ? autoAlerts.slice(0,2).map(a =>
+            `<div class="alert alert-warning" style="font-size:13px;padding:8px 12px">
+               <i class="material-icons" style="font-size:16px">warning</i>
+               ${a.message.substring(0,80)}...
+             </div>`
+          ).join('')
+        : `<div class="alert alert-success" style="font-size:13px">
+             <i class="material-icons" style="font-size:16px">check_circle</i>
+             Good conditions for fieldwork today.
+           </div>`
+      }`;
+  }
+
+  async function loadMyActivities() {
+    const tbody = document.getElementById('activities-body');
+    const res   = await apiRequest('GET', '/activities/my-activities');
+    const items = res?.data?.activities || [];
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;
+        padding:20px;color:var(--gray-mid)">No activities logged yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.slice(0, 10).map(a => `
+      <tr>
+        <td><strong>${a.crop_type || '—'}</strong></td>
+        <td>${a.activity_type}</td>
+        <td style="font-size:13px;color:var(--gray-mid)">
+          ${a.notes || '—'}
+        </td>
+        <td>${formatDate(a.activity_date)}</td>
+        <td>${statusBadge(a.completion_status)}</td>
+      </tr>`).join('');
+  }
+
+  async function quickLogActivity() {
+    const planID = document.getElementById('quick-plan').value;
+    const type   = document.getElementById('quick-type').value;
+    const date   = document.getElementById('quick-date').value;
+    const notes  = document.getElementById('quick-notes').value.trim();
+
+    if (!planID || !date) {
+      showToast('Please select a crop plan and date.', 'warning');
+      return;
+    }
+
+    const res = await apiRequest('POST', '/activities', {
+      cropPlanID  : planID,
+      activityType: type,
+      activityDate: date,
+      notes
+    });
+
+    if (res?.ok) {
+      showToast(`✅ ${type} activity logged successfully!`);
+      document.getElementById('quick-notes').value = '';
+      loadMyActivities();
+    } else {
+      showToast(res?.data?.message || 'Failed to log activity.', 'error');
+    }
+  }
+
+  loadMyPlans();
+  loadWeather();
+  loadMyActivities();
+</script>
+</body>
+</html>

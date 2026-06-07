@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Listing Approval</title>
+
+  <link rel="stylesheet" href="../css/style.css"/>
+
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+    </div>
+
+    <ul class="sidebar-nav">
+
+      <li>
+        <a class="nav-item active" href="listing-approval.html">
+
+          <i class="material-icons">
+            fact_check
+          </i>
+
+          Listing Approval
+
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="marketplace.html">
+
+          <i class="material-icons">
+            storefront
+          </i>
+
+          Marketplace
+
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="system-logs.html">
+
+          <i class="material-icons">
+            receipt_long
+          </i>
+
+          System Logs
+
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+    <!-- HEADER -->
+
+    <div class="page-header">
+
+      <div>
+
+        <h1 class="page-title">
+          Listing Approval
+        </h1>
+
+        <p class="page-subtitle">
+          Approve or reject marketplace product listings
+        </p>
+
+      </div>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stat-grid" id="stats-container">
+
+    </div>
+
+    <!-- LISTINGS -->
+
+    <div id="listings-container">
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+/*
+  INITIAL STORAGE
+*/
+
+if(!localStorage.getItem('marketplaceListings')){
+
+  localStorage.setItem(
+
+    'marketplaceListings',
+
+    JSON.stringify([
+
+      {
+        id:1,
+        product:'Organic Tomato',
+        farmer:'Abebe Farm',
+        quantity:'40 KG',
+        price:'ETB 50/kg',
+        status:'Pending',
+        created:'07 Jun 2026'
+      },
+
+      {
+        id:2,
+        product:'Fresh Onion',
+        farmer:'Green Farm',
+        quantity:'100 KG',
+        price:'ETB 35/kg',
+        status:'Pending',
+        created:'07 Jun 2026'
+      }
+
+    ])
+
+  );
+
+}
+
+/*
+  LOAD LISTINGS
+*/
+
+function loadListings(){
+
+  const container =
+    document.getElementById(
+      'listings-container'
+    );
+
+  let listings =
+    JSON.parse(
+      localStorage.getItem(
+        'marketplaceListings'
+      )
+    ) || [];
+
+  /*
+    STATS
+  */
+
+  const pending =
+    listings.filter(
+      i => i.status === 'Pending'
+    ).length;
+
+  const approved =
+    listings.filter(
+      i => i.status === 'Approved'
+    ).length;
+
+  const rejected =
+    listings.filter(
+      i => i.status === 'Rejected'
+    ).length;
+
+  document.getElementById(
+    'stats-container'
+  ).innerHTML = `
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+
+        <i class="material-icons">
+          inventory_2
+        </i>
+
+      </div>
+
+      <div>
+
+        <div class="stat-value">
+          ${listings.length}
+        </div>
+
+        <div class="stat-label">
+          Total Listings
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon amber">
+
+        <i class="material-icons">
+          schedule
+        </i>
+
+      </div>
+
+      <div>
+
+        <div class="stat-value">
+          ${pending}
+        </div>
+
+        <div class="stat-label">
+          Pending
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+
+        <i class="material-icons">
+          check_circle
+        </i>
+
+      </div>
+
+      <div>
+
+        <div class="stat-value">
+          ${approved}
+        </div>
+
+        <div class="stat-label">
+          Approved
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon red">
+
+        <i class="material-icons">
+          cancel
+        </i>
+
+      </div>
+
+      <div>
+
+        <div class="stat-value">
+          ${rejected}
+        </div>
+
+        <div class="stat-label">
+          Rejected
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+  /*
+    EMPTY
+  */
+
+  if(listings.length === 0){
+
+    container.innerHTML = `
+
+      <div class="card">
+
+        <div class="empty-state">
+
+          <i class="material-icons">
+            inventory_2
+          </i>
+
+          <p>
+            No listings available.
+          </p>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  /*
+    RENDER
+  */
+
+  container.innerHTML = listings.map(item => `
+
+    <div class="card" style="margin-bottom:16px">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:16px;
+      ">
+
+        <!-- LEFT -->
+
+        <div style="
+          display:flex;
+          gap:14px;
+          flex:1;
+        ">
+
+          <div style="
+            width:60px;
+            height:60px;
+            background:var(--green-bg);
+            border-radius:10px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:28px;
+          ">
+            🍅
+          </div>
+
+          <div>
+
+            <div style="
+              font-size:18px;
+              font-weight:600;
+              margin-bottom:6px;
+            ">
+
+              ${item.product}
+
+            </div>
+
+            <div style="
+              color:var(--gray-mid);
+              font-size:14px;
+              margin-bottom:4px;
+            ">
+
+              Farmer:
+              <strong>${item.farmer}</strong>
+
+            </div>
+
+            <div style="
+              color:var(--gray-mid);
+              font-size:14px;
+              margin-bottom:4px;
+            ">
+
+              Quantity:
+              ${item.quantity}
+
+            </div>
+
+            <div style="
+              color:var(--green-main);
+              font-weight:600;
+              font-size:15px;
+            ">
+
+              ${item.price}
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- RIGHT -->
+
+        <div style="
+          display:flex;
+          flex-direction:column;
+          align-items:flex-end;
+          gap:10px;
+        ">
+
+          <div style="
+            padding:6px 14px;
+            border-radius:20px;
+            background:
+              ${item.status === 'Approved'
+                ? 'var(--green-bg)'
+                : item.status === 'Rejected'
+                ? 'var(--red-light)'
+                : 'var(--amber-light)'
+              };
+
+            color:
+              ${item.status === 'Approved'
+                ? 'var(--green-main)'
+                : item.status === 'Rejected'
+                ? 'var(--red)'
+                : 'var(--amber)'
+              };
+
+            font-size:13px;
+            font-weight:600;
+          ">
+
+            ${item.status}
+
+          </div>
+
+          ${
+            item.status === 'Pending'
+            ?
+            `
+            <div style="
+              display:flex;
+              gap:10px;
+            ">
+
+              <button
+                class="btn btn-success"
+                onclick="approveListing(${item.id})"
+              >
+
+                Approve
+
+              </button>
+
+              <button
+                class="btn btn-danger"
+                onclick="rejectListing(${item.id})"
+              >
+
+                Reject
+
+              </button>
+
+            </div>
+            `
+            :
+            ''
+          }
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `).join('');
+
+}
+
+/*
+  APPROVE
+*/
+
+function approveListing(id){
+
+  let listings =
+    JSON.parse(
+      localStorage.getItem(
+        'marketplaceListings'
+      )
+    ) || [];
+
+  listings = listings.map(item => {
+
+    if(item.id === id){
+
+      item.status = 'Approved';
+
+    }
+
+    return item;
+
+  });
+
+  localStorage.setItem(
+    'marketplaceListings',
+    JSON.stringify(listings)
+  );
+
+  loadListings();
+
+}
+
+/*
+  REJECT
+*/
+
+function rejectListing(id){
+
+  let listings =
+    JSON.parse(
+      localStorage.getItem(
+        'marketplaceListings'
+      )
+    ) || [];
+
+  listings = listings.map(item => {
+
+    if(item.id === id){
+
+      item.status = 'Rejected';
+
+    }
+
+    return item;
+
+  });
+
+  localStorage.setItem(
+    'marketplaceListings',
+    JSON.stringify(listings)
+  );
+
+  loadListings();
+
+}
+
+/*
+  INIT
+*/
+
+loadListings();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <style>
+    body {
+      background     : linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
+      display        : flex;
+      align-items    : center;
+      justify-content: center;
+      min-height     : 100vh;
+      padding        : 20px;
+    }
+    .register-card {
+      background   : white;
+      border-radius: 16px;
+      box-shadow   : 0 20px 60px rgba(0,0,0,0.25);
+      padding      : 40px;
+      width        : 100%;
+      max-width    : 480px;
+    }
+    .register-logo {
+      text-align   : center;
+      margin-bottom: 28px;
+    }
+    .register-logo h1 { font-size: 24px; font-weight: 700; color: var(--green-dark); }
+    .register-logo p  { color: var(--gray-mid); font-size: 14px; margin-top: 4px; }
+    #buyer-fields { display: none; }
+    .success-box {
+      text-align : center;
+      padding    : 32px 20px;
+      display    : none;
+    }
+    .success-box .icon { font-size: 56px; margin-bottom: 12px; }
+    .success-box h3    { font-size: 20px; font-weight: 600; color: var(--green-dark); }
+    .success-box p     { color: var(--gray-mid); font-size: 14px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="register-card">
+  <div class="register-logo">
+    <h1>🌿 Create Account</h1>
+    <p>Amdan Organics Farm Platform</p>
+  </div>
+
+  <!-- Registration form -->
+  <form id="register-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="fullName" class="form-control"
+               placeholder="Your full name" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" id="phoneNumber" class="form-control"
+               placeholder="+251911234567" required/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input type="email" id="email" class="form-control"
+             placeholder="your@email.com" required/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="password" class="form-control"
+             placeholder="Minimum 6 characters" required minlength="6"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Role</label>
+      <select id="role" class="form-control" required>
+        <option value="">Select your role</option>
+        <option value="FarmManager">Farm Manager</option>
+        <option value="FarmStaff">Farm Staff / Field Worker</option>
+        <option value="InventoryOfficer">Inventory Officer</option>
+        <option value="Buyer">Buyer / Commercial Client</option>
+      </select>
+    </div>
+
+    <!-- Buyer-only fields -->
+    <div id="buyer-fields">
+      <div class="form-group">
+        <label class="form-label">Business Name</label>
+        <input type="text" id="businessName" class="form-control"
+               placeholder="Your company or business name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Business Type</label>
+        <select id="businessType" class="form-control">
+          <option value="Restaurant">Restaurant</option>
+          <option value="Processor">Processor</option>
+          <option value="Wholesaler">Wholesaler</option>
+          <option value="Individual">Individual</option>
+        </select>
+      </div>
+    </div>
+
+    <p id="error-msg"  style="color:var(--red);font-size:13px;display:none;margin-bottom:12px"></p>
+
+    <button type="submit" class="btn btn-primary"
+            style="width:100%;justify-content:center" id="reg-btn">
+      <i class="material-icons" style="font-size:18px">person_add</i>
+      Create Account
+    </button>
+  </form>
+
+  <!-- Success state -->
+  <div class="success-box" id="success-box">
+    <div class="icon">✅</div>
+    <h3>Registration Successful!</h3>
+    <p>Your account is pending admin approval.<br/>
+       You will be notified once approved.</p>
+    <a href="login.html" class="btn btn-primary" style="margin-top:20px;display:inline-flex">
+      Back to Login
+    </a>
+  </div>
+
+  <p style="text-align:center;margin-top:20px;font-size:14px;color:var(--gray-mid)">
+    Already have an account? <a href="login.html" style="color:var(--green-main);font-weight:500">Login</a>
+  </p>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:3000/api';
+
+  // Show buyer fields when Buyer role selected
+  document.getElementById('role').addEventListener('change', function() {
+    document.getElementById('buyer-fields').style.display =
+      this.value === 'Buyer' ? 'block' : 'none';
+  });
+
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('error-msg');
+    const regBtn  = document.getElementById('reg-btn');
+    errorEl.style.display = 'none';
+    regBtn.disabled       = true;
+    regBtn.textContent    = 'Creating account...';
+
+    const role = document.getElementById('role').value;
+    const body = {
+      fullName    : document.getElementById('fullName').value.trim(),
+      email       : document.getElementById('email').value.trim(),
+      password    : document.getElementById('password').value,
+      phoneNumber : document.getElementById('phoneNumber').value.trim(),
+      role
+    };
+
+    if (role === 'Buyer') {
+      body.businessName = document.getElementById('businessName').value.trim();
+      body.businessType = document.getElementById('businessType').value;
+    }
+
+    try {
+      const res  = await fetch(`${API_BASE}/auth/register`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('success-box').style.display   = 'block';
+      } else {
+        errorEl.style.display = 'block';
+        errorEl.textContent   = data.message || 'Registration failed.';
+        regBtn.disabled       = false;
+        regBtn.innerHTML      = '<i class="material-icons" style="font-size:18px">person_add</i> Create Account';
+      }
+    } catch (err) {
+      errorEl.style.display = 'block';
+      errorEl.textContent   = 'Network error. Make sure the server is running.';
+      regBtn.disabled       = false;
+      regBtn.innerHTML      = '<i class="material-icons" style="font-size:18px">person_add</i> Create Account';
+    }
+  });
+</script>
+</body>
+</html>

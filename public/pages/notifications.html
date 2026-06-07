@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notifications – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav" id="nav-links"></ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">User</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Role</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Notifications</h1>
+        <p class="page-subtitle" id="notif-subtitle">All your notifications</p>
+      </div>
+      <button class="btn btn-secondary" onclick="markAllRead()">
+        <i class="material-icons" style="font-size:18px">done_all</i>
+        Mark All Read
+      </button>
+    </div>
+
+    <!-- Filter tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm tab-btn active"
+              data-filter="all" onclick="filterNotifs('all',this)">
+        All
+      </button>
+      <button class="btn btn-secondary btn-sm tab-btn"
+              data-filter="unread" onclick="filterNotifs('unread',this)">
+        Unread
+      </button>
+      <button class="btn btn-secondary btn-sm tab-btn"
+              data-filter="weather_alert" onclick="filterNotifs('weather_alert',this)">
+        🌦 Weather
+      </button>
+      <button class="btn btn-secondary btn-sm tab-btn"
+              data-filter="new_inquiry" onclick="filterNotifs('new_inquiry',this)">
+        📬 Inquiries
+      </button>
+      <button class="btn btn-secondary btn-sm tab-btn"
+              data-filter="order_update" onclick="filterNotifs('order_update',this)">
+        📦 Orders
+      </button>
+      <button class="btn btn-secondary btn-sm tab-btn"
+              data-filter="low_stock" onclick="filterNotifs('low_stock',this)">
+        ⚠️ Stock
+      </button>
+    </div>
+
+    <!-- Notifications list -->
+    <div class="card" style="padding:0">
+      <div id="notif-list">
+        <div style="padding:28px;text-align:center">
+          <div class="spinner" style="margin:0 auto"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<style>
+  .notif-item {
+    display        : flex;
+    align-items    : flex-start;
+    gap            : 14px;
+    padding        : 16px 20px;
+    border-bottom  : 1px solid var(--gray-light);
+    transition     : var(--transition);
+    cursor         : pointer;
+  }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item:hover { background: #f9fafb; }
+  .notif-item.unread { background: var(--green-bg); }
+  .notif-item.unread:hover { background: #dcedc8; }
+  .notif-icon {
+    width          : 42px; height: 42px;
+    border-radius  : 50%;
+    display        : flex;
+    align-items    : center;
+    justify-content: center;
+    font-size      : 20px;
+    flex-shrink    : 0;
+  }
+  .notif-body { flex: 1; }
+  .notif-msg  { font-size: 14px; color: var(--gray-dark); line-height: 1.5; }
+  .notif-time { font-size: 12px; color: var(--gray-mid); margin-top: 4px; }
+  .notif-dot  {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green-main);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+</style>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth();
+
+  let allNotifications = [];
+  let currentFilter    = 'all';
+
+  // Dynamic nav based on role
+  const role = Auth.getRole();
+  const navMap = {
+    SystemAdmin: [
+      { href:'admin-dashboard.html',  icon:'dashboard',        label:'Dashboard' },
+      { href:'admin-users.html',      icon:'manage_accounts',  label:'Users' },
+      { href:'admin-listings.html',   icon:'storefront',       label:'Listings' },
+      { href:'market-prices.html',    icon:'bar_chart',        label:'Market Prices' },
+      { href:'advisories.html',       icon:'warning',          label:'Advisories' },
+      { href:'system-logs.html',      icon:'history',          label:'System Logs' },
+      { href:'notifications.html',    icon:'notifications',    label:'Notifications' },
+    ],
+    FarmManager: [
+      { href:'farm-dashboard.html',   icon:'dashboard',        label:'Dashboard' },
+      { href:'crop-plans.html',       icon:'eco',              label:'Crop Plans' },
+      { href:'harvests.html',         icon:'agriculture',      label:'Harvests' },
+      { href:'weather.html',          icon:'cloud',            label:'Weather' },
+      { href:'market-prices.html',    icon:'bar_chart',        label:'Market Prices' },
+      { href:'my-listings.html',      icon:'storefront',       label:'My Listings' },
+      { href:'inquiries.html',        icon:'question_answer',  label:'Inquiries' },
+      { href:'orders.html',           icon:'receipt_long',     label:'Orders' },
+      { href:'reports.html',          icon:'assessment',       label:'Reports' },
+      { href:'notifications.html',    icon:'notifications',    label:'Notifications' },
+    ],
+    FarmStaff: [
+      { href:'staff-dashboard.html',  icon:'dashboard',        label:'Dashboard' },
+      { href:'my-tasks.html',         icon:'task_alt',         label:'My Tasks' },
+      { href:'log-activity.html',     icon:'edit_note',        label:'Log Activity' },
+      { href:'weather.html',          icon:'cloud',            label:'Weather' },
+      { href:'notifications.html',    icon:'notifications',    label:'Notifications' },
+    ],
+    Buyer: [
+      { href:'buyer-dashboard.html',  icon:'dashboard',        label:'Dashboard' },
+      { href:'marketplace.html',      icon:'storefront',       label:'Browse Products' },
+      { href:'my-inquiries.html',     icon:'question_answer',  label:'My Inquiries' },
+      { href:'my-orders.html',        icon:'receipt_long',     label:'My Orders' },
+      { href:'notifications.html',    icon:'notifications',    label:'Notifications' },
+    ],
+    InventoryOfficer: [
+      { href:'inventory-dashboard.html', icon:'dashboard',     label:'Dashboard' },
+      { href:'inventory.html',           icon:'inventory_2',   label:'Stock Items' },
+      { href:'low-stock.html',           icon:'warning',       label:'Low Stock' },
+      { href:'inventory-report.html',    icon:'assessment',    label:'Report' },
+      { href:'notifications.html',       icon:'notifications', label:'Notifications' },
+    ],
+  };
+
+  const navItems = navMap[role] || [];
+  document.getElementById('nav-links').innerHTML = navItems.map(n =>
+    `<li><a class="nav-item${window.location.pathname.includes(n.href) ? ' active' : ''}"
+            href="${n.href}">
+       <i class="material-icons">${n.icon}</i> ${n.label}
+     </a></li>`
+  ).join('');
+
+  // Notification type icons + colors
+  const typeConfig = {
+    task_assignment : { icon: '📋', bg: '#E3F2FD', label: 'Task' },
+    new_inquiry     : { icon: '📬', bg: '#E8F5E9', label: 'Inquiry' },
+    inquiry_response: { icon: '💬', bg: '#E8F5E9', label: 'Response' },
+    low_stock       : { icon: '⚠️', bg: '#FFF8E1', label: 'Stock Alert' },
+    weather_alert   : { icon: '🌦', bg: '#E3F2FD', label: 'Weather' },
+    listing_approved: { icon: '✅', bg: '#E8F5E9', label: 'Listing' },
+    listing_rejected: { icon: '❌', bg: '#FFEBEE', label: 'Listing' },
+    account_approved: { icon: '👤', bg: '#E8F5E9', label: 'Account' },
+    account_suspended:{ icon: '🔒', bg: '#FFEBEE', label: 'Account' },
+    order_update    : { icon: '📦', bg: '#E3F2FD', label: 'Order' },
+  };
+
+  async function loadNotifications() {
+    const res = await apiRequest('GET', '/admin/notifications');
+    allNotifications = res?.data?.notifications || [];
+
+    const unread = allNotifications.filter(n => !n.is_read).length;
+    document.getElementById('notif-subtitle').textContent =
+      `${allNotifications.length} total · ${unread} unread`;
+
+    renderNotifications();
+  }
+
+  function filterNotifs(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.className = 'btn btn-secondary btn-sm tab-btn';
+    });
+    btn.className = 'btn btn-primary btn-sm tab-btn active';
+    renderNotifications();
+  }
+
+  function renderNotifications() {
+    const container = document.getElementById('notif-list');
+    let items       = [...allNotifications];
+
+    if (currentFilter === 'unread') {
+      items = items.filter(n => !n.is_read);
+    } else if (currentFilter !== 'all') {
+      items = items.filter(n => n.type === currentFilter);
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding:48px">
+          <i class="material-icons">notifications_none</i>
+          <p>No notifications found.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(n => {
+      const cfg = typeConfig[n.type] || { icon:'🔔', bg:'#F5F5F5', label:'Alert' };
+      return `
+        <div class="notif-item ${!n.is_read ? 'unread' : ''}"
+             onclick="markRead('${n.notification_id}',this)">
+          <div class="notif-icon" style="background:${cfg.bg}">
+            ${cfg.icon}
+          </div>
+          <div class="notif-body">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+              <span class="badge badge-blue" style="font-size:10px">${cfg.label}</span>
+              ${!n.is_read
+                ? '<span class="badge badge-green" style="font-size:10px">New</span>'
+                : ''}
+            </div>
+            <div class="notif-msg">${n.message}</div>
+            <div class="notif-time">
+              ${formatDateTime(n.created_at)}
+            </div>
+          </div>
+          ${!n.is_read ? '<div class="notif-dot"></div>' : ''}
+        </div>`;
+    }).join('');
+  }
+
+  async function markRead(notifID, el) {
+    if (el.classList.contains('unread')) {
+      await apiRequest('PATCH', `/admin/notifications/${notifID}/read`);
+      el.classList.remove('unread');
+      const dot = el.querySelector('.notif-dot');
+      if (dot) dot.remove();
+      const newBadge = el.querySelector('.badge-green');
+      if (newBadge) newBadge.remove();
+
+      // Update count
+      const idx = allNotifications.findIndex(n => n.notification_id === notifID);
+      if (idx >= 0) allNotifications[idx].is_read = true;
+      const unread = allNotifications.filter(n => !n.is_read).length;
+      document.getElementById('notif-subtitle').textContent =
+        `${allNotifications.length} total · ${unread} unread`;
+    }
+  }
+
+  async function markAllRead() {
+    const unread = allNotifications.filter(n => !n.is_read);
+    await Promise.all(unread.map(n =>
+      apiRequest('PATCH', `/admin/notifications/${n.notification_id}/read`)
+    ));
+    allNotifications.forEach(n => n.is_read = true);
+    showToast('All notifications marked as read.');
+    renderNotifications();
+    document.getElementById('notif-subtitle').textContent =
+      `${allNotifications.length} total · 0 unread`;
+  }
+
+  loadNotifications();
+</script>
+</body>
+</html>

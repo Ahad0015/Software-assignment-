@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <style>
+    body {
+      background     : linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
+      display        : flex;
+      align-items    : center;
+      justify-content: center;
+      min-height     : 100vh;
+      padding        : 20px;
+    }
+    .login-card {
+      background   : white;
+      border-radius: 16px;
+      box-shadow   : 0 20px 60px rgba(0,0,0,0.25);
+      padding      : 40px;
+      width        : 100%;
+      max-width    : 420px;
+    }
+    .login-logo {
+      text-align   : center;
+      margin-bottom: 28px;
+    }
+    .login-logo h1 { font-size: 26px; font-weight: 700; color: var(--green-dark); }
+    .login-logo p  { color: var(--gray-mid); font-size: 14px; margin-top: 4px; }
+    .login-logo .leaf {
+      font-size    : 48px;
+      display      : block;
+      margin-bottom: 8px;
+    }
+    .role-grid {
+      display              : grid;
+      grid-template-columns: 1fr 1fr;
+      gap                  : 8px;
+      margin-bottom        : 20px;
+    }
+    .role-btn {
+      padding      : 10px 8px;
+      border       : 2px solid var(--gray-light);
+      border-radius: var(--radius-sm);
+      background   : var(--white);
+      font-size    : 13px;
+      font-weight  : 500;
+      color        : var(--gray-mid);
+      transition   : var(--transition);
+      cursor       : pointer;
+      text-align   : center;
+    }
+    .role-btn:hover,
+    .role-btn.selected {
+      border-color: var(--green-main);
+      color       : var(--green-dark);
+      background  : var(--green-bg);
+    }
+    .role-btn .role-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+    .divider {
+      text-align   : center;
+      color        : var(--gray-mid);
+      font-size    : 12px;
+      margin       : 16px 0;
+      position     : relative;
+    }
+    .divider::before, .divider::after {
+      content   : '';
+      position  : absolute;
+      top       : 50%;
+      width     : 42%;
+      height    : 1px;
+      background: var(--gray-light);
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+    .forgot-link {
+      text-align : right;
+      font-size  : 13px;
+      color      : var(--green-main);
+      display    : block;
+      margin-top : -8px;
+      margin-bottom: 16px;
+    }
+    .register-link {
+      text-align : center;
+      margin-top : 20px;
+      font-size  : 14px;
+      color      : var(--gray-mid);
+    }
+    .register-link a { color: var(--green-main); font-weight: 500; }
+    .input-wrap { position: relative; }
+    .input-wrap .material-icons {
+      position : absolute;
+      left     : 12px;
+      top      : 50%;
+      transform: translateY(-50%);
+      color    : var(--gray-mid);
+      font-size: 18px;
+    }
+    .input-wrap .form-control { padding-left: 40px; }
+    #error-msg {
+      color      : var(--red);
+      font-size  : 13px;
+      margin-top : 8px;
+      display    : none;
+      text-align : center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-logo">
+    <span class="leaf">🌿</span>
+    <h1>Amdan Organics</h1>
+    <p>Farm Management Platform</p>
+  </div>
+
+  <!-- Role selector -->
+  <p style="font-size:13px;font-weight:500;color:var(--gray-mid);margin-bottom:10px">
+    Login as:
+  </p>
+  <div class="role-grid">
+    <button class="role-btn" data-role="SystemAdmin">
+      <span class="role-icon">🔧</span>System Admin
+    </button>
+    <button class="role-btn" data-role="FarmManager">
+      <span class="role-icon">🌾</span>Farm Manager
+    </button>
+    <button class="role-btn" data-role="FarmStaff">
+      <span class="role-icon">👷</span>Field Worker
+    </button>
+    <button class="role-btn" data-role="Buyer">
+      <span class="role-icon">🛒</span>Buyer / Client
+    </button>
+    <button class="role-btn" data-role="InventoryOfficer" style="grid-column:span 2">
+      <span class="role-icon">📦</span>Inventory Manager
+    </button>
+  </div>
+
+  <div class="divider">or enter credentials</div>
+
+  <!-- Login form -->
+  <form id="login-form">
+    <div class="form-group">
+      <label class="form-label">Email / Phone</label>
+      <div class="input-wrap">
+        <i class="material-icons">email</i>
+        <input type="email" id="email" class="form-control"
+               placeholder="Enter your email" required/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="input-wrap">
+        <i class="material-icons">lock</i>
+        <input type="password" id="password" class="form-control"
+               placeholder="Enter your password" required/>
+      </div>
+    </div>
+    <a href="#" class="forgot-link">Forgot Password?</a>
+    <p id="error-msg"></p>
+    <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center" id="login-btn">
+      <i class="material-icons" style="font-size:18px">login</i>
+      Login
+    </button>
+  </form>
+
+  <div class="register-link">
+    Don't have an account? <a href="register.html">Register here</a>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:3000/api';
+
+  // Role button selection
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  // Login form submit
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorEl  = document.getElementById('error-msg');
+    const loginBtn = document.getElementById('login-btn');
+
+    errorEl.style.display = 'none';
+    loginBtn.disabled     = true;
+    loginBtn.textContent  = 'Logging in...';
+
+    try {
+      const res  = await fetch(`${API_BASE}/auth/login`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        // Save session
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role',  data.user.role);
+        localStorage.setItem('user',  JSON.stringify({
+          userID  : data.user.userID,
+          fullName: data.user.fullName,
+          email   : data.user.email,
+          role    : data.user.role
+        }));
+
+        // Redirect based on role
+        const dashMap = {
+          SystemAdmin     : 'admin-dashboard.html',
+          FarmManager     : 'farm-dashboard.html',
+          FarmStaff       : 'staff-dashboard.html',
+          InventoryOfficer: 'inventory-dashboard.html',
+          Buyer           : 'buyer-dashboard.html'
+        };
+        window.location.href = dashMap[data.user.role] || 'login.html';
+      } else {
+        errorEl.style.display = 'block';
+        errorEl.textContent   = data.message || 'Login failed.';
+        loginBtn.disabled     = false;
+        loginBtn.innerHTML    = '<i class="material-icons" style="font-size:18px">login</i> Login';
+      }
+    } catch (err) {
+      errorEl.style.display = 'block';
+      errorEl.textContent   = 'Network error. Make sure the server is running.';
+      loginBtn.disabled     = false;
+      loginBtn.innerHTML    = '<i class="material-icons" style="font-size:18px">login</i> Login';
+    }
+  });
+</script>
+</body>
+</html>

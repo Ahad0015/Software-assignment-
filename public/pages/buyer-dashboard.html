@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buyer Dashboard – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Marketplace</li>
+      <li><a class="nav-item active" href="buyer-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item" href="marketplace.html">
+        <i class="material-icons">storefront</i> Browse Products</a></li>
+      <li><a class="nav-item" href="my-inquiries.html">
+        <i class="material-icons">question_answer</i> My Inquiries</a></li>
+      <li><a class="nav-item" href="my-orders.html">
+        <i class="material-icons">receipt_long</i> My Orders</a></li>
+      <li class="nav-section-label">Info</li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">B</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Buyer</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Buyer</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" id="welcome-msg">Welcome! 🌿</h1>
+        <p class="page-subtitle">Your organic produce dashboard</p>
+      </div>
+      <a href="marketplace.html" class="btn btn-primary">
+        <i class="material-icons" style="font-size:18px">storefront</i>
+        Browse Products
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="buyer-stats">
+      <div class="spinner"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- Recent inquiries -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">My Recent Inquiries</h3>
+          <a href="my-inquiries.html" class="btn btn-sm btn-outline">View all</a>
+        </div>
+        <div id="recent-inquiries"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Active orders -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">My Active Orders</h3>
+          <a href="my-orders.html" class="btn btn-sm btn-outline">View all</a>
+        </div>
+        <div id="active-orders"><div class="spinner"></div></div>
+      </div>
+
+    </div>
+
+    <!-- Featured products -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Available Products</h3>
+        <a href="marketplace.html" class="btn btn-sm btn-outline">
+          Browse all
+        </a>
+      </div>
+      <div id="featured-products"
+           style="display:grid;grid-template-columns:repeat(auto-fill,
+                  minmax(200px,1fr));gap:12px">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('Buyer');
+
+  const user = Auth.getUser();
+  document.getElementById('welcome-msg').textContent =
+    `Welcome back, ${user.fullName?.split(' ')[0] || 'Buyer'}! 🌿`;
+
+  async function loadStats() {
+    const [inqRes, ordRes] = await Promise.all([
+      apiRequest('GET', '/inquiries'),
+      apiRequest('GET', '/orders')
+    ]);
+
+    const inquiries = inqRes?.data?.inquiries || [];
+    const orders    = ordRes?.data?.orders || [];
+
+    const pending   = inquiries.filter(i =>
+      ['Submitted','Under Review'].includes(i.status)).length;
+    const accepted  = inquiries.filter(i => i.status === 'Accepted' ||
+      i.status === 'Order Created').length;
+    const delivered = orders.filter(o => o.status === 'Delivered').length;
+    const spending  = orders
+      .filter(o => o.status === 'Delivered')
+      .reduce((s,o) => s + parseFloat(o.total_amount), 0);
+
+    document.getElementById('buyer-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon amber">
+          <i class="material-icons">pending_actions</i></div>
+        <div><div class="stat-value">${pending}</div>
+        <div class="stat-label">Pending Inquiries</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="material-icons">check_circle</i></div>
+        <div><div class="stat-value">${accepted}</div>
+        <div class="stat-label">Accepted</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="material-icons">local_shipping</i></div>
+        <div><div class="stat-value">${delivered}</div>
+        <div class="stat-label">Delivered</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="material-icons">payments</i></div>
+        <div><div class="stat-value">${formatCurrency(spending)}</div>
+        <div class="stat-label">Total Spent</div></div>
+      </div>`;
+  }
+
+  async function loadRecentInquiries() {
+    const container = document.getElementById('recent-inquiries');
+    const res = await apiRequest('GET', '/inquiries');
+    const items = (res?.data?.inquiries || []).slice(0, 5);
+
+    if (items.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <i class="material-icons">question_answer</i>
+        <p>No inquiries yet.</p>
+        <span><a href="marketplace.html">Browse products</a></span></div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(i => `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:10px 0;border-bottom:1px solid var(--gray-light)">
+        <div>
+          <div style="font-size:13px;font-weight:500">${i.product_name}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">
+            ${formatNumber(i.requested_qty)} ${i.unit} ·
+            ${formatDate(i.created_at)}
+          </div>
+        </div>
+        ${statusBadge(i.status)}
+      </div>`).join('');
+  }
+
+  async function loadActiveOrders() {
+    const container = document.getElementById('active-orders');
+    const res = await apiRequest('GET', '/orders');
+    const items = (res?.data?.orders || [])
+      .filter(o => !['Delivered','Cancelled'].includes(o.status))
+      .slice(0, 5);
+
+    if (items.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <i class="material-icons">receipt_long</i>
+        <p>No active orders.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(o => `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:10px 0;border-bottom:1px solid var(--gray-light)">
+        <div>
+          <div style="font-size:13px;font-weight:500">${o.product_name}</div>
+          <div style="font-size:12px;color:var(--gray-mid)">
+            ${formatCurrency(o.total_amount)} · ${formatDate(o.created_at)}
+          </div>
+        </div>
+        ${statusBadge(o.status)}
+      </div>`).join('');
+  }
+
+  async function loadFeaturedProducts() {
+    const container = document.getElementById('featured-products');
+    const res = await apiRequest('GET', '/listings/marketplace');
+    const listings  = (res?.data?.listings || []).slice(0, 6);
+
+    if (listings.length === 0) {
+      container.innerHTML = `<div class="empty-state"
+        style="grid-column:1/-1">
+        <i class="material-icons">storefront</i>
+        <p>No products available right now.</p></div>`;
+      return;
+    }
+
+    const emojis = {
+      tomato:'🍅', wheat:'🌾', maize:'🌽', spinach:'🥬',
+      carrot:'🥕', potato:'🥔', banana:'🍌', rice:'🌾'
+    };
+    function getEmoji(name) {
+      const k = Object.keys(emojis).find(e =>
+        name?.toLowerCase().includes(e));
+      return k ? emojis[k] : '🌿';
+    }
+
+    container.innerHTML = listings.map(l => `
+      <div style="background:var(--gray-light);border-radius:var(--radius-sm);
+                  padding:16px;text-align:center">
+        <div style="font-size:36px;margin-bottom:8px">${getEmoji(l.product_name)}</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">
+          ${l.product_name}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--green-main);
+                    margin-bottom:4px">
+          ETB ${parseFloat(l.unit_price).toFixed(2)}/${l.unit}
+        </div>
+        <div style="font-size:12px;color:var(--gray-mid);margin-bottom:10px">
+          ${formatNumber(l.quantity_available)} ${l.unit} available
+        </div>
+        <a href="marketplace.html" class="btn btn-sm btn-outline"
+           style="width:100%;justify-content:center">
+          View
+        </a>
+      </div>`).join('');
+  }
+
+  loadStats();
+  loadRecentInquiries();
+  loadActiveOrders();
+  loadFeaturedProducts();
+</script>
+</body>
+</html>

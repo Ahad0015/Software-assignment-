@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inventory – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Inventory</li>
+      <li><a class="nav-item" href="inventory-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard</a></li>
+      <li><a class="nav-item active" href="inventory.html">
+        <i class="material-icons">inventory_2</i> Stock Items</a></li>
+      <li><a class="nav-item" href="low-stock.html">
+        <i class="material-icons">warning</i> Low Stock Alerts</a></li>
+      <li class="nav-section-label">Reports</li>
+      <li><a class="nav-item" href="inventory-report.html">
+        <i class="material-icons">assessment</i> Inventory Report</a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">I</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Officer</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">InventoryOfficer</div>
+        </div>
+        <button class="btn-logout" id="logout-btn">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Stock Items</h1>
+        <p class="page-subtitle">Manage stock levels and financial transactions</p>
+      </div>
+      <button class="btn btn-primary"
+              onclick="openModal('add-item-modal')">
+        <i class="material-icons" style="font-size:18px">add</i> Add Item
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="inv-stats">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <select id="filter-cat" class="form-control" style="width:180px"
+                onchange="loadInventory()">
+          <option value="">All Categories</option>
+          <option value="Produce">Produce</option>
+          <option value="Seeds">Seeds</option>
+          <option value="Fertilizer">Fertilizer</option>
+          <option value="Pesticide">Pesticide</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="filter-stock" class="form-control" style="width:180px"
+                onchange="loadInventory()">
+          <option value="">All Stock Levels</option>
+          <option value="ok">In Stock</option>
+          <option value="low">Low Stock</option>
+          <option value="out">Out of Stock</option>
+        </select>
+        <button class="btn btn-secondary" onclick="loadInventory()">
+          <i class="material-icons" style="font-size:18px">refresh</i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Item Name</th><th>Category</th>
+              <th>Current Stock</th><th>Unit</th>
+              <th>Unit Cost (ETB)</th><th>Min Threshold</th>
+              <th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inv-body">
+            <tr><td colspan="8" style="text-align:center;
+              padding:28px;color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Item Modal -->
+<div class="modal-overlay" id="add-item-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Add Inventory Item</h3>
+      <button class="modal-close" onclick="closeModal('add-item-modal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Item Name</label>
+        <input type="text" id="i-name" class="form-control" placeholder="e.g. Fertilizer NPK"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select id="i-cat" class="form-control">
+          <option value="Produce">Produce</option>
+          <option value="Seeds">Seeds</option>
+          <option value="Fertilizer">Fertilizer</option>
+          <option value="Pesticide">Pesticide</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Initial Stock</label>
+        <input type="number" id="i-stock" class="form-control"
+               placeholder="0" min="0" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unit</label>
+        <select id="i-unit" class="form-control">
+          <option value="kg">kg</option>
+          <option value="ton">ton</option>
+          <option value="liter">liter</option>
+          <option value="unit">unit</option>
+          <option value="bag">bag</option>
+          <option value="piece">piece</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Unit Cost (ETB)</label>
+        <input type="number" id="i-cost" class="form-control"
+               placeholder="0.00" min="0" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Min Threshold</label>
+        <input type="number" id="i-threshold" class="form-control"
+               placeholder="0" min="0" step="0.01"/>
+      </div>
+    </div>
+    <p id="add-item-error"
+       style="color:var(--red);font-size:13px;display:none"></p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary"
+              onclick="closeModal('add-item-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addItem()" id="add-item-btn">
+        <i class="material-icons" style="font-size:18px">save</i> Add Item
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Action Modal (add/use) -->
+<div class="modal-overlay" id="stock-action-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="stock-action-title">Update Stock</h3>
+      <button class="modal-close"
+              onclick="closeModal('stock-action-modal')">✕</button>
+    </div>
+    <div id="stock-action-info"
+         style="background:var(--green-bg);border-radius:var(--radius-sm);
+                padding:12px;margin-bottom:16px;font-size:14px"></div>
+    <div class="form-group">
+      <label class="form-label">Quantity</label>
+      <input type="number" id="sa-qty" class="form-control"
+             placeholder="Enter quantity" min="0.01" step="0.01"/>
+    </div>
+    <div class="form-group" id="cost-field" style="display:none">
+      <label class="form-label">Unit Cost (ETB) — optional</label>
+      <input type="number" id="sa-cost" class="form-control"
+             placeholder="Leave blank to keep current" min="0" step="0.01"/>
+    </div>
+    <p id="sa-error"
+       style="color:var(--red);font-size:13px;display:none"></p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary"
+              onclick="closeModal('stock-action-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="executeStockAction()" id="sa-btn">
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  requireAuth('InventoryOfficer', 'FarmManager', 'SystemAdmin');
+
+  let currentItemID  = null;
+  let currentAction  = null;
+
+  async function loadInventory() {
+    const tbody    = document.getElementById('inv-body');
+    const category = document.getElementById('filter-cat').value;
+    const stock    = document.getElementById('filter-stock').value;
+
+    let url = '/inventory?';
+    if (category) url += `category=${category}&`;
+    if (stock)    url += `stockStatus=${stock}`;
+
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:28px">
+      <div class="spinner" style="margin:0 auto"></div></td></tr>`;
+
+    const res   = await apiRequest('GET', url);
+    const items = res?.data?.items || [];
+    const low   = res?.data?.lowStockAlerts || 0;
+
+    // Stats
+    const totalVal = items.reduce(
+      (s, i) => s + parseFloat(i.current_stock) * parseFloat(i.unit_cost), 0);
+    document.getElementById('inv-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">inventory_2</i></div>
+        <div><div class="stat-value">${items.length}</div>
+        <div class="stat-label">Total Items</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="material-icons">warning</i></div>
+        <div><div class="stat-value">${low}</div>
+        <div class="stat-label">Low Stock Alerts</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="material-icons">payments</i></div>
+        <div><div class="stat-value">${formatCurrency(totalVal)}</div>
+        <div class="stat-label">Stock Value</div></div>
+      </div>`;
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;
+        padding:28px;color:var(--gray-mid)">No inventory items found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.map(item => {
+      const isLow = parseFloat(item.current_stock) <
+                    parseFloat(item.minimum_threshold);
+      const isOut = parseFloat(item.current_stock) === 0;
+      const stockStatus = isOut ? 'Out of Stock' : isLow ? 'Low Stock' : 'In Stock';
+      return `
+        <tr>
+          <td><strong>${item.item_name}</strong></td>
+          <td>${item.category}</td>
+          <td style="font-weight:${isLow?'700':'400'};
+                     color:${isLow?'var(--red)':'inherit'}">
+            ${formatNumber(item.current_stock)}
+          </td>
+          <td>${item.unit}</td>
+          <td>${formatCurrency(item.unit_cost)}</td>
+          <td>${formatNumber(item.minimum_threshold)}</td>
+          <td>${statusBadge(stockStatus)}</td>
+          <td style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary"
+                    onclick="openStockAction('${item.item_id}','add',
+                      '${item.item_name}','${item.unit}')">
+              + Add
+            </button>
+            <button class="btn btn-sm btn-amber"
+                    onclick="openStockAction('${item.item_id}','use',
+                      '${item.item_name}','${item.unit}')">
+              - Use
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function openStockAction(itemID, action, itemName, unit) {
+    currentItemID = itemID;
+    currentAction = action;
+    const title   = action === 'add' ? 'Add Incoming Stock' : 'Record Stock Usage';
+    document.getElementById('stock-action-title').textContent = title;
+    document.getElementById('stock-action-info').innerHTML =
+      `<strong>${itemName}</strong> — recording ${action === 'add'
+        ? 'incoming stock' : 'usage'} in <strong>${unit}</strong>`;
+    document.getElementById('cost-field').style.display =
+      action === 'add' ? 'block' : 'none';
+    document.getElementById('sa-qty').value  = '';
+    document.getElementById('sa-error').style.display = 'none';
+    document.getElementById('sa-btn').innerHTML =
+      action === 'add' ? '✅ Add Stock' : '📤 Record Usage';
+    openModal('stock-action-modal');
+  }
+
+  async function executeStockAction() {
+    const btn   = document.getElementById('sa-btn');
+    const errEl = document.getElementById('sa-error');
+    errEl.style.display = 'none';
+
+    const qty  = parseFloat(document.getElementById('sa-qty').value);
+    const cost = parseFloat(document.getElementById('sa-cost').value) || null;
+
+    if (!qty || qty <= 0) {
+      errEl.style.display = 'block';
+      errEl.textContent   = 'Please enter a valid quantity.';
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Processing...';
+
+    const endpoint = currentAction === 'add'
+      ? `/inventory/${currentItemID}/add-stock`
+      : `/inventory/${currentItemID}/use-stock`;
+
+    const body = currentAction === 'add'
+      ? { quantity: qty, unitCost: cost }
+      : { quantity: qty };
+
+    const res = await apiRequest('PATCH', endpoint, body);
+    btn.disabled = false;
+
+    if (res?.ok) {
+      closeModal('stock-action-modal');
+      if (res.data.lowStockAlert) {
+        showToast('⚠️ Stock updated — LOW STOCK ALERT triggered!', 'warning');
+      } else {
+        showToast('Stock updated successfully.');
+      }
+      loadInventory();
+    } else {
+      errEl.style.display = 'block';
+      errEl.textContent   = res?.data?.message || 'Failed to update stock.';
+      btn.disabled        = false;
+    }
+  }
+
+  async function addItem() {
+    const btn   = document.getElementById('add-item-btn');
+    const errEl = document.getElementById('add-item-error');
+    errEl.style.display = 'none';
+
+    const body = {
+      itemName        : document.getElementById('i-name').value.trim(),
+      category        : document.getElementById('i-cat').value,
+      currentStock    : parseFloat(document.getElementById('i-stock').value) || 0,
+      unit            : document.getElementById('i-unit').value,
+      unitCost        : parseFloat(document.getElementById('i-cost').value) || 0,
+      minimumThreshold: parseFloat(document.getElementById('i-threshold').value) || 0,
+    };
+
+    if (!body.itemName) {
+      errEl.style.display = 'block';
+      errEl.textContent   = 'Item name is required.';
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Adding...';
+
+    const res = await apiRequest('POST', '/inventory', body);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="material-icons" style="font-size:18px">save</i> Add Item';
+
+    if (res?.ok) {
+      closeModal('add-item-modal');
+      showToast('Inventory item added successfully.');
+      loadInventory();
+    } else {
+      errEl.style.display = 'block';
+      errEl.textContent   = res?.data?.message || 'Failed to add item.';
+    }
+  }
+
+  loadInventory();
+</script>
+</body>
+</html> 

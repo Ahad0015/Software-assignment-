@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – Amdan Organics</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section-label">Main</li>
+      <li><a class="nav-item active" href="admin-dashboard.html">
+        <i class="material-icons">dashboard</i> Dashboard
+      </a></li>
+      <li><a class="nav-item" href="admin-users.html">
+        <i class="material-icons">manage_accounts</i> User Management
+      </a></li>
+      <li class="nav-section-label">Marketplace</li>
+      
+      <li><a class="nav-item" href="market-prices.html">
+        <i class="material-icons">bar_chart</i> Market Prices
+      </a></li>
+      <li class="nav-section-label">Advisory</li>
+      <li><a class="nav-item" href="advisories.html">
+        <i class="material-icons">warning</i> Advisories
+      </a></li>
+      <li class="nav-section-label">System</li>
+      <li><a class="nav-item" href="system-logs.html">
+        <i class="material-icons">history</i> System Logs
+      </a></li>
+      <li><a class="nav-item" href="notifications.html">
+        <i class="material-icons">notifications</i> Notifications
+      </a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">SystemAdmin</div>
+        </div>
+        <button class="btn-logout" id="logout-btn" title="Logout">
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">System Administrator</h1>
+        <p class="page-subtitle">Platform management and monitoring</p>
+      </div>
+      <button class="btn btn-primary" onclick="loadStats()">
+        <i class="material-icons" style="font-size:18px">refresh</i> Refresh
+      </button>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid" id="stat-grid">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Two column grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- Pending users -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">User Approval Queue</h3>
+          <a href="admin-users.html?status=Pending" class="btn btn-sm btn-outline">View all</a>
+        </div>
+        <div id="pending-users-list">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- System alerts -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">System Alerts</h3>
+        </div>
+        <div id="system-alerts-list">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent orders -->
+    <div class="card" style="margin-top:0">
+      <div class="card-header">
+        <h3 class="card-title">Recent Orders</h3>
+        <a href="orders.html" class="btn btn-sm btn-outline">View all</a>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Buyer</th>
+              <th>Quantity</th>
+              <th>Total (ETB)</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="recent-orders-body">
+            <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-mid)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  // Protect page – admin only
+  requireAuth('SystemAdmin');
+
+  // Load dashboard stats
+  async function loadStats() {
+    const statGrid = document.getElementById('stat-grid');
+    statGrid.innerHTML = '<div class="spinner"></div>';
+
+    const res = await apiRequest('GET', '/admin/dashboard');
+    if (!res || !res.ok) return;
+
+    const { users, listings, orders, inventory, notifications } = res.data;
+
+    statGrid.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">people</i></div>
+        <div>
+          <div class="stat-value">${users.approved}</div>
+          <div class="stat-label">Active Users</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="material-icons">pending_actions</i></div>
+        <div>
+          <div class="stat-value">${users.pending}</div>
+          <div class="stat-label">Pending Approvals</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="material-icons">storefront</i></div>
+        <div>
+          <div class="stat-value">${listings.published}</div>
+          <div class="stat-label">Active Listings</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="material-icons">payments</i></div>
+        <div>
+          <div class="stat-value">ETB ${parseFloat(orders.total_revenue || 0).toLocaleString()}</div>
+          <div class="stat-label">Total Revenue</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="material-icons">inventory_2</i></div>
+        <div>
+          <div class="stat-value">${inventory.low_stock}</div>
+          <div class="stat-label">Low Stock Items</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="material-icons">notifications</i></div>
+        <div>
+          <div class="stat-value">${notifications.unread}</div>
+          <div class="stat-label">Unread Notifications</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Load pending users
+  async function loadPendingUsers() {
+    const container = document.getElementById('pending-users-list');
+    const res = await apiRequest('GET', '/admin/users?status=Pending');
+    if (!res || !res.ok) return;
+
+    const users = res.data.users || [];
+    if (users.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <i class="material-icons">check_circle</i>
+        <p>No pending approvals</p></div>`;
+      return;
+    }
+
+    container.innerHTML = users.slice(0, 5).map(u => `
+      <div style="display:flex;align-items:center;justify-content:space-between;
+                  padding:10px 0;border-bottom:1px solid var(--gray-light)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar" style="width:32px;height:32px;font-size:13px">
+            ${u.full_name.charAt(0)}
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500">${u.full_name}</div>
+            <div style="font-size:12px;color:var(--gray-mid)">${u.role}</div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-primary"
+                onclick="approveUser('${u.user_id}', this)">
+          Approve
+        </button>
+      </div>`).join('');
+  }
+
+  // Load system alerts (low stock + pending listings)
+  async function loadSystemAlerts() {
+    const container = document.getElementById('system-alerts-list');
+    const [stockRes, listRes] = await Promise.all([
+      apiRequest('GET', '/inventory/low-stock'),
+      apiRequest('GET', '/listings?status=Pending Approval')
+    ]);
+
+    const alerts = [];
+    if (stockRes?.ok) {
+      stockRes.data.items?.slice(0, 3).forEach(item => {
+        alerts.push({
+          type   : 'warning',
+          message: `Low stock: ${item.item_name} (${item.current_stock} ${item.unit} remaining)`
+        });
+      });
+    }
+    if (listRes?.ok) {
+      listRes.data.listings?.slice(0, 3).forEach(l => {
+        alerts.push({
+          type   : 'info',
+          message: `Listing pending approval: "${l.product_name}"`
+        });
+      });
+    }
+
+    if (alerts.length === 0) {
+      container.innerHTML = `<div class="alert alert-success">
+        <i class="material-icons">check_circle</i> All systems normal</div>`;
+      return;
+    }
+    container.innerHTML = alerts.map(a =>
+      `<div class="alert alert-${a.type}">
+         <i class="material-icons">${a.type === 'warning' ? 'warning' : 'info'}</i>
+         ${a.message}
+       </div>`
+    ).join('');
+  }
+
+  // Load recent orders
+  async function loadRecentOrders() {
+    const tbody = document.getElementById('recent-orders-body');
+    const res   = await apiRequest('GET', '/orders');
+    if (!res || !res.ok) return;
+
+    const orders = (res.data.orders || []).slice(0, 8);
+    if (orders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;
+        padding:24px;color:var(--gray-mid)">No orders yet</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td><strong>${o.product_name}</strong></td>
+        <td>${o.buyer_name}</td>
+        <td>${formatNumber(o.quantity_ordered)} ${o.unit}</td>
+        <td>${formatCurrency(o.total_amount)}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td>${formatDate(o.created_at)}</td>
+      </tr>`).join('');
+  }
+
+  // Approve user
+  async function approveUser(userID, btn) {
+    btn.disabled    = true;
+    btn.textContent = '...';
+    const res = await apiRequest('PATCH', `/admin/users/${userID}/approve`);
+    if (res?.ok) {
+      showToast('User approved successfully.');
+      btn.closest('div[style]').remove();
+    } else {
+      showToast(res?.data?.message || 'Error approving user.', 'error');
+      btn.disabled    = false;
+      btn.textContent = 'Approve';
+    }
+  }
+
+  // Init
+  loadStats();
+  loadPendingUsers();
+  loadSystemAlerts();
+  loadRecentOrders();
+</script>
+</body>
+</html>

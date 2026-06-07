@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Market Prices – Amdan Organics</title>
+
+  <link rel="stylesheet" href="../css/style.css"/>
+
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+
+  <nav class="sidebar">
+
+    <div class="sidebar-logo">
+      <h2>🌿 Amdan Organics</h2>
+      <span>Farm Management Platform</span>
+    </div>
+
+    <ul class="sidebar-nav">
+
+      <li class="nav-section-label">
+        Marketplace
+      </li>
+
+      <li>
+        <a class="nav-item" href="buyer-dashboard.html">
+          <i class="material-icons">dashboard</i>
+          Dashboard
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="marketplace.html">
+          <i class="material-icons">storefront</i>
+          Marketplace
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item active" href="market-prices.html">
+          <i class="material-icons">trending_up</i>
+          Market Prices
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-item" href="my-orders.html">
+          <i class="material-icons">receipt_long</i>
+          My Orders
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+    <!-- HEADER -->
+
+    <div class="page-header">
+
+      <div>
+
+        <h1 class="page-title">
+          Market Prices
+        </h1>
+
+        <p class="page-subtitle">
+          Live marketplace product pricing overview
+        </p>
+
+      </div>
+
+      <button
+        class="btn btn-primary"
+        onclick="refreshPrices()"
+      >
+
+        <i class="material-icons" style="font-size:18px">
+          refresh
+        </i>
+
+        Refresh
+
+      </button>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stat-grid" id="price-stats">
+
+      <div class="spinner"></div>
+
+    </div>
+
+    <!-- FILTER -->
+
+    <div class="card" style="padding:16px;margin-bottom:16px">
+
+      <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap
+      ">
+
+        <input
+          type="text"
+          id="search-input"
+          class="form-control"
+          placeholder="Search product..."
+          onkeyup="loadPrices()"
+          style="max-width:280px"
+        />
+
+      </div>
+
+    </div>
+
+    <!-- PRICE LIST -->
+
+    <div id="prices-container">
+
+      <div class="spinner"></div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+/*
+  INITIAL DATA
+*/
+
+if(!localStorage.getItem('marketPrices')){
+
+  localStorage.setItem(
+
+    'marketPrices',
+
+    JSON.stringify([
+
+      {
+        id:1,
+        product:'Organic Tomato',
+        market:'Addis Ababa',
+        price:'ETB 50 / kg',
+        trend:'up',
+        updated:'07 Jun 2026'
+      },
+
+      {
+        id:2,
+        product:'Fresh Onion',
+        market:'Adama',
+        price:'ETB 35 / kg',
+        trend:'down',
+        updated:'07 Jun 2026'
+      },
+
+      {
+        id:3,
+        product:'Organic Potato',
+        market:'Bahir Dar',
+        price:'ETB 28 / kg',
+        trend:'stable',
+        updated:'07 Jun 2026'
+      },
+
+      {
+        id:4,
+        product:'Fresh Carrot',
+        market:'Hawassa',
+        price:'ETB 42 / kg',
+        trend:'up',
+        updated:'07 Jun 2026'
+      }
+
+    ])
+
+  );
+
+}
+
+/*
+  LOAD PRICES
+*/
+
+function loadPrices(){
+
+  const container =
+    document.getElementById('prices-container');
+
+  const keyword =
+    document.getElementById('search-input')
+    .value
+    .toLowerCase();
+
+  let prices =
+    JSON.parse(
+      localStorage.getItem('marketPrices')
+    ) || [];
+
+  /*
+    SEARCH
+  */
+
+  if(keyword){
+
+    prices = prices.filter(item =>
+
+      item.product.toLowerCase().includes(keyword)
+      ||
+      item.market.toLowerCase().includes(keyword)
+
+    );
+
+  }
+
+  /*
+    STATS
+  */
+
+  const up =
+    prices.filter(i=>i.trend==='up').length;
+
+  const down =
+    prices.filter(i=>i.trend==='down').length;
+
+  const stable =
+    prices.filter(i=>i.trend==='stable').length;
+
+  document.getElementById(
+    'price-stats'
+  ).innerHTML = `
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="material-icons">inventory_2</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${prices.length}
+        </div>
+
+        <div class="stat-label">
+          Products
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+        <i class="material-icons">trending_up</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${up}
+        </div>
+
+        <div class="stat-label">
+          Rising
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon red">
+        <i class="material-icons">trending_down</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${down}
+        </div>
+
+        <div class="stat-label">
+          Falling
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+
+      <div class="stat-icon amber">
+        <i class="material-icons">remove</i>
+      </div>
+
+      <div>
+        <div class="stat-value">
+          ${stable}
+        </div>
+
+        <div class="stat-label">
+          Stable
+        </div>
+      </div>
+
+    </div>
+
+  `;
+
+  /*
+    EMPTY
+  */
+
+  if(prices.length === 0){
+
+    container.innerHTML = `
+
+      <div class="card">
+
+        <div class="empty-state">
+
+          <i class="material-icons">
+            search_off
+          </i>
+
+          <p>No prices found.</p>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  /*
+    RENDER
+  */
+
+  container.innerHTML = prices.map(item => {
+
+    const trendConfig = {
+
+      up : {
+        bg:'var(--green-bg)',
+        color:'var(--green-main)',
+        icon:'trending_up',
+        label:'Rising'
+      },
+
+      down : {
+        bg:'var(--red-light)',
+        color:'var(--red)',
+        icon:'trending_down',
+        label:'Falling'
+      },
+
+      stable : {
+        bg:'var(--amber-light)',
+        color:'var(--amber)',
+        icon:'remove',
+        label:'Stable'
+      }
+
+    };
+
+    const tc = trendConfig[item.trend];
+
+    return `
+
+      <div class="card" style="margin-bottom:14px">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          flex-wrap:wrap;
+          gap:14px
+        ">
+
+          <!-- LEFT -->
+
+          <div style="
+            display:flex;
+            gap:14px;
+            flex:1
+          ">
+
+            <div style="
+              width:56px;
+              height:56px;
+              background:var(--green-bg);
+              border-radius:var(--radius-sm);
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-size:24px;
+              flex-shrink:0
+            ">
+              🥬
+            </div>
+
+            <div>
+
+              <div style="
+                font-size:16px;
+                font-weight:600;
+                margin-bottom:4px
+              ">
+
+                ${item.product}
+
+              </div>
+
+              <div style="
+                font-size:13px;
+                color:var(--gray-mid);
+                margin-bottom:4px
+              ">
+
+                Market:
+                <strong>${item.market}</strong>
+
+              </div>
+
+              <div style="
+                font-size:14px;
+                font-weight:600;
+                color:var(--green-main)
+              ">
+
+                ${item.price}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT -->
+
+          <div style="
+            display:flex;
+            flex-direction:column;
+            align-items:flex-end;
+            gap:8px
+          ">
+
+            <div style="
+              display:flex;
+              align-items:center;
+              gap:6px;
+              padding:6px 12px;
+              background:${tc.bg};
+              color:${tc.color};
+              border-radius:20px;
+              font-size:13px;
+              font-weight:500
+            ">
+
+              <i class="material-icons" style="font-size:16px">
+                ${tc.icon}
+              </i>
+
+              ${tc.label}
+
+            </div>
+
+            <div style="
+              font-size:11px;
+              color:var(--gray-mid)
+            ">
+
+              Updated:
+              ${item.updated}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }).join('');
+
+}
+
+/*
+  REFRESH
+*/
+
+function refreshPrices(){
+
+  loadPrices();
+
+}
+
+/*
+  INIT
+*/
+
+loadPrices();
+
+</script>
+
+</body>
+</html>
