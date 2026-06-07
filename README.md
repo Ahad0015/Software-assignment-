@@ -111,16 +111,15 @@ http://localhost:3000/
 - Farm Owners and Staff can manage crop plans, field activities, harvests, inventory, and advisories
 - Buyers can browse the marketplace, submit inquiries, and place orders
 - Admins can manage all users, approve listings, view system logs, and generate reports
- Farm Manager = "email": "manager@amdan.com"
+-  Farm Manager = "email": "manager@amdan.com"
              password = manager123
-
- Staff   =  "email": "staff@amdan.com"
+- Staff   =  "email": "staff@amdan.com"
              password = staff123
                    
-  System Admin  =  "email": "admin@amdan.com"
+- System Admin  =  "email": "admin@amdan.com"
         password = admin123
     
-    the buyer must be Registerd 
+- the buyer must be Registerd 
                   
 ---
 
